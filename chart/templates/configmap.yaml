@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "psytican-bot.fullname" . }}-config
+  labels:
+    {{- include "psytican-bot.labels" . | nindent 4 }}
+data:
+  CONVERSATION_TIMEOUT: {{ .Values.config.converstationTimeout | quote }}
+  CALENDAR_ID: {{ .Values.config.calendarId | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  WEBHOOK_MODE: {{ .Values.config.webhookMode | quote }}
+  WEBHOOK_URL: https://{{ .Values.hostname }}
+  PORT: {{ .Values.port | quote }}
+  HOSTNAME: https://{{ .Values.hostname }}
+  {{- if .Values.config.vault }}
+  VAULT_URL: {{ .Values.config.vault.url | quote }}
+  VAULT_SECRET_PATH: {{ .Values.config.vault.secretPath | quote }}
+  VAULT_KUBERNETES_ROLE: {{ .Values.config.vault.kubernetesRole | quote }}
+  {{- end -}}
