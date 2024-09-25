@@ -45,7 +45,7 @@ else:
     app = FastAPI(lifespan=lifespan_polling)
 
 app.add_middleware(PrometheusMiddleware)
-app.add_route("/metrics/", metrics)
+app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
 
 
 @app.post("/")
