@@ -171,10 +171,10 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     event_matrix = event_list(events=events)
     context.user_data["event_list"] = event_matrix
     logger.debug(f"{events=}")
-    reply_txt = []
+    reply_txt = f"Next {settings.EVENTS_PER_LIST} events"
     logger.debug(f"{reply_txt=}")
+    keyboard = []
     if len(event_matrix) > 0:
-        keyboard = []
         for event in event_matrix:
             event_link = event.html_link
             logger.debug(f"Keyboard button {event.summary=}, {event_link=}")
@@ -205,7 +205,8 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 ]
                 keyboard.append(row)
     else:
-        reply_txt = ["No upcoming events"]
+        logger.info("No events found in calendar")
+        reply_txt = "No upcoming events"
 
     logger.debug(f"{reply_txt=}")
     logger.debug(f"{update.callback_query=}")
@@ -213,7 +214,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         keyboard.append([InlineKeyboardButton(text="<< Back", callback_data=END)])
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
-            text=f"Next {settings.EVENTS_PER_LIST} events",
+            text=reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
         )
@@ -221,7 +222,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         # this pattern is used for simple messages
         keyboard.append([InlineKeyboardButton(text="Exit", callback_data=CANCEL)])
         await update.message.reply_text(
-            f"Next {settings.EVENTS_PER_LIST} events",
+            reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
         )
@@ -559,7 +560,15 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     logger.debug(f"{result=}")
     await update.callback_query.answer()
     await update.callback_query.edit_message_text(
-        f"Event {event_body.summary} successfully {action}"
+        (
+            f'Event <a href="'
+            f'{result["htmlLink"]}">'
+            f"{event_body.summary}</a> "
+            f"successfully {action} by "
+            f"<b>@{update.effective_user.username}</b>\n"
+        ),
+        parse_mode="HTML",
+        disable_web_page_preview=True,
     )
     context.user_data.pop(NEW_EVENT, None)
     context.user_data.pop(NEW_EVENT_DICT, None)
@@ -608,6 +617,7 @@ calendar_select_handler = ConversationHandler(
             calendar_handler,
             pattern=("^" + str(EDIT_START_DATE) + "$|^" + str(EDIT_END_DATE) + "$"),
         ),
+        CallbackQueryHandler(inline_calendar_handler, pattern="CALENDAR"),
     ],
     states={
         CAL_CONTROL: [
