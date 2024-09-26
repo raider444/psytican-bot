@@ -46,6 +46,3 @@ class CalendarEvent(BaseEventModel):
         if self.end.date_time is not None and self.end.date_time < self.start.date_time:
             raise ValueError("End time must be greater than start time")
         return self
-
-
-print(_date.strftime)
