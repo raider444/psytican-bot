@@ -9,8 +9,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler
 from fastapi import FastAPI, Request, Response
 from starlette_prometheus import metrics, PrometheusMiddleware
 from http import HTTPStatus
+from importlib.metadata import version
 
-from src.config import settings
+from src.configs.config import settings
 from src.utils.logger import logger
 
 
@@ -37,7 +38,7 @@ async def lifespan(_: FastAPI):
             await tg_app.stop()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, version=version("psytican-bot"))
 
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
@@ -46,6 +47,7 @@ app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
 @app.post("/")
 async def process_update(request: Request):
     req = await request.json()
+    logger.debug(f"{req=}")
     update = Update.de_json(req, tg_app.bot)
     await tg_app.process_update(update)
     return Response(status_code=HTTPStatus.OK)
@@ -62,7 +64,7 @@ tg_app = (
 
 
 tg_app.add_handler(TgHandlers.conv_handler)
-tg_app.add_handler(CommandHandler("start", TgHandlers.start))
+tg_app.add_handler(CommandHandler("start", TgHandlers.general_start))
 tg_app.add_handler(CommandHandler("hello", TgHandlers.hello))
 tg_app.add_handler(CommandHandler("help", TgHandlers.help_command))
 tg_app.add_handler(CommandHandler("cancel", TgHandlers.cancel))

@@ -16,11 +16,12 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-
-from src.config import settings
+from src.configs.config import settings
+from src.configs.user_conf import yaml_settings
 from src.google_api.gcalendar import GoogleCalendar
 from src.models.calendar.event import CalendarEvent, CalendarDateTime
 from src.models.calendar.event_meta import CalendarEventMetadata
+from src.telegram.tg_acl import ChatACL
 from src.telegram.utils import format_calndar_date
 from src.utils.logger import logger
 
@@ -39,9 +40,25 @@ GET_EVENTS, EVENT_MENU, DELETE_EVENT, EVENT_CONTROL = map(chr, range(5, 9))
 END = ConversationHandler.END
 
 # Regex patterns
-MESSAGE_PATTENS = r"^(new\ event|book|бук|get\ events)$"
+MESSAGE_PATTERNS = r"^(new\ event|book|бук|get\ events)$"
 MESSAGE_NEW_EVENT_PATTERNS = r"^(new\ event|book|бук)$"
 MESSAGE_GET_EVENT_PATTERNS = r"^(get\ events)$"
+MESSAGE_CANCEL_PATTERNS = r"^(cancel|stop)$"
+
+global_filter = ChatACL()
+# def chat_acl() -> list[int]:
+#     yaml_settings.__init__
+#     # acl = (filters.ALL)
+#     admin_list = yaml_settings.admin_users if yaml_settings.admin_users else []
+#     logger.debug(f'{admin_list=}')
+#     group_list = yaml_settings.allowed_chats if yaml_settings.allowed_chats else []
+#     logger.debug(f'{group_list=}')
+#     chat_acl = admin_list + group_list
+#     # if len(chat_acl) > 0:
+#     #     acl = filters.Chat(chat_acl)
+#     return {e for e in chat_acl}
+
+# allowed_chats = filters.Chat(1)
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -69,9 +86,26 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return END
 
 
+async def general_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text("You are not allowed to communicate with me")
+    logger.info(
+        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted"
+    )
+    logger.debug(f"{update=}")
+    yaml_settings.__init__()
+    # logger.debug(f'{allowed_chats=}')
+    # allowed_chats.add_chat_ids(chat_acl())
+    global_filter.update_acl()  # TODO
+    filters.Chat(1).add_chat_ids(2)
+    logger.debug(f"{global_filter.chat_ids=}")  # TODO
+    logger.debug(f"{filters.Chat(1).chat_ids=}")  # TODO
+    logger.debug(f"{yaml_settings.TEST_STUFF=}")  # TODO
+    return END
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     """Sends a message with three inline buttons attached."""
-
+    # logger.debug(f'{allowed_chats=}')
     keyboard = [["get events", "book", "cancel"]]
 
     if update.callback_query or update.message.chat.is_forum:
@@ -605,8 +639,8 @@ async def save_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
 fallback_handlers = [
     CommandHandler("cancel", cancel),
     CommandHandler("start", start),
-    MessageHandler(filters.Regex(r"^(cancel|stop)$"), cancel),
-    MessageHandler(filters.Regex(MESSAGE_PATTENS), button),
+    MessageHandler(filters.Regex(MESSAGE_CANCEL_PATTERNS), cancel),
+    MessageHandler(filters.Regex(MESSAGE_PATTERNS), button),
 ]
 
 calendar_select_handler = ConversationHandler(
@@ -626,8 +660,7 @@ calendar_select_handler = ConversationHandler(
     },
     fallbacks=[
         CommandHandler("cancel", cancel),
-        MessageHandler(filters.Regex(r"^(cancel|stop)$"), cancel),
-        MessageHandler(filters.Regex(MESSAGE_PATTENS), button),
+        MessageHandler(filters.Regex(MESSAGE_PATTERNS), button),
     ],
     map_to_parent={
         EVENT_EDITOR: EVENT_EDITOR,
@@ -691,7 +724,6 @@ event_list_conv_handler = ConversationHandler(
     + [
         CallbackQueryHandler(end_event_action, pattern="^" + str(BACK) + "$"),
         CallbackQueryHandler(end_second_level, pattern="^" + str(END) + "$"),
-        MessageHandler(filters.Regex(r"^(sss)$"), cancel),
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
     ],
     map_to_parent={
@@ -704,7 +736,10 @@ conv_handler = ConversationHandler(
     name="main",
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        CommandHandler("start", start),
+        # CommandHandler("start", start),
+        # CommandHandler("start", start, filters=(filters.ALL & filters.ChatType.GROUPS)),  # TODO
+        CommandHandler("start", start, filters=global_filter),  # TODO
+        # CommandHandler("start", start, filters=(chat_acl() & filters.ChatType.GROUPS)),  # TODO
         MessageHandler(filters.Regex(r"^(calendar)$"), button),
         event_list_conv_handler,
         event_editor_handler,

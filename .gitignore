@@ -16,3 +16,4 @@ build/
 experiments
 privkey.json
 credentials.json
+config.yaml
