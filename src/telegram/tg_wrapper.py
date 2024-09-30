@@ -1,6 +1,7 @@
 import json
 import re
 import src.telegram.tg_calendar as Calendar
+import src.telegram.common as Common
 
 from telegram import (
     Update,
@@ -17,7 +18,6 @@ from telegram.ext import (
     filters,
 )
 from src.configs.config import settings
-from src.configs.user_conf import yaml_settings
 from src.google_api.gcalendar import GoogleCalendar
 from src.models.calendar.event import CalendarEvent, CalendarDateTime
 from src.models.calendar.event_meta import CalendarEventMetadata
@@ -91,16 +91,17 @@ async def general_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     logger.info(
         f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted"
     )
-    logger.debug(f"{update=}")
-    yaml_settings.__init__()
-    # logger.debug(f'{allowed_chats=}')
-    # allowed_chats.add_chat_ids(chat_acl())
-    global_filter.update_acl()  # TODO
-    filters.Chat(1).add_chat_ids(2)
-    logger.debug(f"{global_filter.chat_ids=}")  # TODO
-    logger.debug(f"{filters.Chat(1).chat_ids=}")  # TODO
-    logger.debug(f"{yaml_settings.TEST_STUFF=}")  # TODO
     return END
+
+
+async def update_acls(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    Common.update_acl()
+    usernames = ",".join(map(str, Common.admin_acl.usernames))
+    chats = ",".join(map(str, Common.chat_acl.chat_ids))
+    logger.info(f'ACLs updated, admins: "{usernames}", Allowed chats: "{chats}"')
+    await update.message.reply_text(
+        f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"'
+    )
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -219,7 +220,8 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             button_text = f"[{date}]: {event.summary}"
             logger.debug(f"{event.model_dump_json()=}")
             if (
-                event.description
+                update.effective_user.username in Common.admin_acl.usernames
+                or event.description
                 and event.description.owner["id"] == update.effective_user.id
             ):
                 callback_data = str(EVENT_MENU) + event.id
@@ -394,17 +396,24 @@ async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         event_dates = f"{event.start.date} - {event.end.date}"
     logger.debug(f"{event_dates=}")
-    if event.description.owner["username"]:
-        event_owner = {
-            "text": event.description.owner["username"],
-            "url": f'https://t.me/{event.description.owner["username"]}',
-            "callback": None,
-        }
+    if isinstance(event.description, CalendarEventMetadata):
+        if event.description.owner.get("username"):
+            event_owner = {
+                "text": event.description.owner.get("username"),
+                "url": f'https://t.me/{event.description.owner.get("username")}',
+                "callback": None,
+            }
+        else:
+            event_owner = {
+                "text": f'{event.description.owner["first_name"]} {event.description.owner["last_name"]}',
+                "url": None,
+                "callback": "NO_ACTION",
+            }
     else:
         event_owner = {
-            "text": f'{event.description.owner["first_name"]} {event.description.owner["last_name"]}',
-            "url": None,
-            "callback": "NO_ACTION",
+            "text": "NO OWNER",
+            "url": f"https://t.me/{update.effective_user.username}",
+            "callback": None,
         }
     context.user_data[CURRENT_EVENT] = event
     logger.debug(f"INITIALIZED CURRENT EVENT CACHE {context.user_data[CURRENT_EVENT]=}")
@@ -489,11 +498,15 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         )
     else:
         event: CalendarEvent = context.user_data.get(CURRENT_EVENT)
+        if isinstance(event.description, CalendarEventMetadata):
+            event_owner = f'@{event.description.owner.get("username")}'
+        else:
+            event_owner = "No owner"
         message = (
             f"Editing event\n<b>Title:</b> {event.summary}\n"
             f"<b>Start date</b>: {event.start.date}\n"
             f"<b>End date</b>: {event.end.date}\n"
-            f'<b>Owner</b>: @{event.description.owner.get("username")}\n'
+            f"<b>Owner</b>: {event_owner}\n"
         )
 
     keyboard = [
@@ -588,7 +601,10 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         event_id = event_body.id
         event_body.id = None
         description = event_body.description
-        event_body.description = description.model_dump_json()
+        try:
+            event_body.description = description.model_dump_json()
+        except AttributeError as err:
+            logger.warning(f"Event {event_id} has bad description. Error: {err}")
         logger.debug(f"{event_id=} {event_body=}")
         result = GoogleCalendar().update_event(event_id, event_body)
     logger.debug(f"{result=}")
@@ -738,7 +754,11 @@ conv_handler = ConversationHandler(
     entry_points=[
         # CommandHandler("start", start),
         # CommandHandler("start", start, filters=(filters.ALL & filters.ChatType.GROUPS)),  # TODO
-        CommandHandler("start", start, filters=global_filter),  # TODO
+        # CommandHandler("start", start, filters=Common.chat_acl),  # TODO
+        # CommandHandler("start", start, filters=Common.global_filter),  # TODO
+        CommandHandler(
+            "start", start, filters=(Common.chat_acl | Common.admin_acl)
+        ),  # Only this works
         # CommandHandler("start", start, filters=(chat_acl() & filters.ChatType.GROUPS)),  # TODO
         MessageHandler(filters.Regex(r"^(calendar)$"), button),
         event_list_conv_handler,

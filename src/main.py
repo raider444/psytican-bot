@@ -2,11 +2,13 @@ import asyncio
 import uvicorn.server
 import src.telegram.tg_wrapper as TgHandlers
 import uvicorn
+import src.telegram.common as Common
 
 from contextlib import asynccontextmanager
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from starlette_prometheus import metrics, PrometheusMiddleware
 from http import HTTPStatus
 from importlib.metadata import version
@@ -53,9 +55,28 @@ async def process_update(request: Request):
     return Response(status_code=HTTPStatus.OK)
 
 
+@app.get("/healtz")
+async def healthz(request: Request):
+    response = {"version": version("psytican-bot"), "status": "ok"}
+    return JSONResponse(
+        content=response,
+    )
+
+
 @app.get("/metric")
 async def metric(request: Request):
     return metrics(request)
+
+
+@app.patch("/update_acls")
+async def update_acls(request: Request):
+    # yaml_settings.__init__
+    Common.update_acl()
+    return Response(
+        status_code=HTTPStatus.NO_CONTENT,
+        # content=json.dumps(response),
+        # headers={"Content-Type": "application/json"}
+    )
 
 
 tg_app = (
@@ -68,6 +89,9 @@ tg_app.add_handler(CommandHandler("start", TgHandlers.general_start))
 tg_app.add_handler(CommandHandler("hello", TgHandlers.hello))
 tg_app.add_handler(CommandHandler("help", TgHandlers.help_command))
 tg_app.add_handler(CommandHandler("cancel", TgHandlers.cancel))
+tg_app.add_handler(
+    CommandHandler("update_acls", TgHandlers.update_acls, filters=Common.admin_acl)
+)
 
 
 async def run_bot() -> None:

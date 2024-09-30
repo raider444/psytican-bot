@@ -10,7 +10,7 @@ from src.utils.convert import Convert
 
 class YamlSettings(BaseSettings):
     TEST_STUFF: str = ""
-    admin_users: list[int] | None = None
+    admin_users: list[str] | None = None
     allowed_chats: list[int] | None = None
 
     model_config: SettingsConfigDict = {
