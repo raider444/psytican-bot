@@ -2,15 +2,18 @@ import asyncio
 import uvicorn.server
 import src.telegram.tg_wrapper as TgHandlers
 import uvicorn
+import src.telegram.common as Common
 
 from contextlib import asynccontextmanager
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from starlette_prometheus import metrics, PrometheusMiddleware
 from http import HTTPStatus
+from importlib.metadata import version
 
-from src.config import settings
+from src.configs.config import settings
 from src.utils.logger import logger
 
 
@@ -37,7 +40,7 @@ async def lifespan(_: FastAPI):
             await tg_app.stop()
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, version=version("psytican-bot"))
 
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
@@ -46,14 +49,31 @@ app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
 @app.post("/")
 async def process_update(request: Request):
     req = await request.json()
+    logger.debug(f"{req=}")
     update = Update.de_json(req, tg_app.bot)
     await tg_app.process_update(update)
     return Response(status_code=HTTPStatus.OK)
 
 
+@app.get("/healtz")
+async def healthz(request: Request):
+    response = {"version": version("psytican-bot"), "status": "ok"}
+    return JSONResponse(
+        content=response,
+    )
+
+
 @app.get("/metric")
 async def metric(request: Request):
     return metrics(request)
+
+
+@app.patch("/update_acls")
+async def update_acls(request: Request):
+    Common.update_acl()
+    return Response(
+        status_code=HTTPStatus.NO_CONTENT,
+    )
 
 
 tg_app = (
@@ -62,10 +82,13 @@ tg_app = (
 
 
 tg_app.add_handler(TgHandlers.conv_handler)
-tg_app.add_handler(CommandHandler("start", TgHandlers.start))
+tg_app.add_handler(CommandHandler("start", TgHandlers.general_start))
 tg_app.add_handler(CommandHandler("hello", TgHandlers.hello))
 tg_app.add_handler(CommandHandler("help", TgHandlers.help_command))
 tg_app.add_handler(CommandHandler("cancel", TgHandlers.cancel))
+tg_app.add_handler(
+    CommandHandler("update_acls", TgHandlers.update_acls, filters=Common.admin_acl)
+)
 
 
 async def run_bot() -> None:

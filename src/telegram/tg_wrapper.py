@@ -1,6 +1,7 @@
 import json
 import re
 import src.telegram.tg_calendar as Calendar
+import src.telegram.common as Common
 
 from telegram import (
     Update,
@@ -16,8 +17,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-
-from src.config import settings
+from src.configs.config import settings
 from src.google_api.gcalendar import GoogleCalendar
 from src.models.calendar.event import CalendarEvent, CalendarDateTime
 from src.models.calendar.event_meta import CalendarEventMetadata
@@ -39,9 +39,10 @@ GET_EVENTS, EVENT_MENU, DELETE_EVENT, EVENT_CONTROL = map(chr, range(5, 9))
 END = ConversationHandler.END
 
 # Regex patterns
-MESSAGE_PATTENS = r"^(new\ event|book|бук|get\ events)$"
+MESSAGE_PATTERNS = r"^(new\ event|book|бук|get\ events)$"
 MESSAGE_NEW_EVENT_PATTERNS = r"^(new\ event|book|бук)$"
 MESSAGE_GET_EVENT_PATTERNS = r"^(get\ events)$"
+MESSAGE_CANCEL_PATTERNS = r"^(cancel|stop)$"
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -69,9 +70,27 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return END
 
 
+async def general_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text("You are not allowed to communicate with me")
+    logger.info(
+        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted"
+    )
+    return END
+
+
+async def update_acls(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    Common.update_acl()
+    usernames = ",".join(map(str, Common.admin_acl.usernames))
+    chats = ",".join(map(str, Common.chat_acl.chat_ids))
+    logger.info(f'ACLs updated, admins: "{usernames}", Allowed chats: "{chats}"')
+    await update.message.reply_text(
+        f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"'
+    )
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     """Sends a message with three inline buttons attached."""
-
+    # logger.debug(f'{allowed_chats=}')
     keyboard = [["get events", "book", "cancel"]]
 
     if update.callback_query or update.message.chat.is_forum:
@@ -185,7 +204,8 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             button_text = f"[{date}]: {event.summary}"
             logger.debug(f"{event.model_dump_json()=}")
             if (
-                event.description
+                update.effective_user.username in Common.admin_acl.usernames
+                or event.description
                 and event.description.owner["id"] == update.effective_user.id
             ):
                 callback_data = str(EVENT_MENU) + event.id
@@ -360,17 +380,24 @@ async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         event_dates = f"{event.start.date} - {event.end.date}"
     logger.debug(f"{event_dates=}")
-    if event.description.owner["username"]:
-        event_owner = {
-            "text": event.description.owner["username"],
-            "url": f'https://t.me/{event.description.owner["username"]}',
-            "callback": None,
-        }
+    if isinstance(event.description, CalendarEventMetadata):
+        if event.description.owner.get("username"):
+            event_owner = {
+                "text": event.description.owner.get("username"),
+                "url": f'https://t.me/{event.description.owner.get("username")}',
+                "callback": None,
+            }
+        else:
+            event_owner = {
+                "text": f'{event.description.owner["first_name"]} {event.description.owner["last_name"]}',
+                "url": None,
+                "callback": "NO_ACTION",
+            }
     else:
         event_owner = {
-            "text": f'{event.description.owner["first_name"]} {event.description.owner["last_name"]}',
-            "url": None,
-            "callback": "NO_ACTION",
+            "text": "NO OWNER",
+            "url": f"https://t.me/{update.effective_user.username}",
+            "callback": None,
         }
     context.user_data[CURRENT_EVENT] = event
     logger.debug(f"INITIALIZED CURRENT EVENT CACHE {context.user_data[CURRENT_EVENT]=}")
@@ -455,11 +482,15 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         )
     else:
         event: CalendarEvent = context.user_data.get(CURRENT_EVENT)
+        if isinstance(event.description, CalendarEventMetadata):
+            event_owner = f'@{event.description.owner.get("username")}'
+        else:
+            event_owner = "No owner"
         message = (
             f"Editing event\n<b>Title:</b> {event.summary}\n"
             f"<b>Start date</b>: {event.start.date}\n"
             f"<b>End date</b>: {event.end.date}\n"
-            f'<b>Owner</b>: @{event.description.owner.get("username")}\n'
+            f"<b>Owner</b>: {event_owner}\n"
         )
 
     keyboard = [
@@ -554,7 +585,10 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         event_id = event_body.id
         event_body.id = None
         description = event_body.description
-        event_body.description = description.model_dump_json()
+        try:
+            event_body.description = description.model_dump_json()
+        except AttributeError as err:
+            logger.warning(f"Event {event_id} has bad description. Error: {err}")
         logger.debug(f"{event_id=} {event_body=}")
         result = GoogleCalendar().update_event(event_id, event_body)
     logger.debug(f"{result=}")
@@ -605,8 +639,8 @@ async def save_input(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
 fallback_handlers = [
     CommandHandler("cancel", cancel),
     CommandHandler("start", start),
-    MessageHandler(filters.Regex(r"^(cancel|stop)$"), cancel),
-    MessageHandler(filters.Regex(MESSAGE_PATTENS), button),
+    MessageHandler(filters.Regex(MESSAGE_CANCEL_PATTERNS), cancel),
+    MessageHandler(filters.Regex(MESSAGE_PATTERNS), button),
 ]
 
 calendar_select_handler = ConversationHandler(
@@ -626,8 +660,7 @@ calendar_select_handler = ConversationHandler(
     },
     fallbacks=[
         CommandHandler("cancel", cancel),
-        MessageHandler(filters.Regex(r"^(cancel|stop)$"), cancel),
-        MessageHandler(filters.Regex(MESSAGE_PATTENS), button),
+        MessageHandler(filters.Regex(MESSAGE_PATTERNS), button),
     ],
     map_to_parent={
         EVENT_EDITOR: EVENT_EDITOR,
@@ -643,7 +676,12 @@ event_editor_handler = ConversationHandler(
             edit_event,
             pattern=("^" + str(EDIT_EVENT) + "$|^" + str(EVENT_CREATE) + "$"),
         ),
-        MessageHandler(filters.Regex(MESSAGE_NEW_EVENT_PATTERNS), button),
+        MessageHandler(
+            filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
+            & (Common.chat_acl | Common.admin_acl),
+            button,
+            # filters=filters.Regex(MESSAGE_NEW_EVENT_PATTERNS) & Common.chat_acl | Common.admin_acl
+        ),
     ],
     states={
         EVENT_EDITOR: [
@@ -670,7 +708,11 @@ event_list_conv_handler = ConversationHandler(
     name="event_list",
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        MessageHandler(filters.Regex(MESSAGE_GET_EVENT_PATTERNS), get_events_handler),
+        MessageHandler(
+            filters.Regex(MESSAGE_GET_EVENT_PATTERNS)
+            & (Common.chat_acl | Common.admin_acl),
+            get_events_handler,
+        ),
         CallbackQueryHandler(get_events_handler, pattern="^" + str(GET_EVENTS) + "$"),
     ],
     states={
@@ -691,7 +733,6 @@ event_list_conv_handler = ConversationHandler(
     + [
         CallbackQueryHandler(end_event_action, pattern="^" + str(BACK) + "$"),
         CallbackQueryHandler(end_second_level, pattern="^" + str(END) + "$"),
-        MessageHandler(filters.Regex(r"^(sss)$"), cancel),
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
     ],
     map_to_parent={
@@ -704,8 +745,10 @@ conv_handler = ConversationHandler(
     name="main",
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        CommandHandler("start", start),
-        MessageHandler(filters.Regex(r"^(calendar)$"), button),
+        CommandHandler(
+            "start", start, filters=(Common.chat_acl | Common.admin_acl)
+        ),  # Only this works
+        # MessageHandler(filters.Regex(r"^(calendar)$"), button),
         event_list_conv_handler,
         event_editor_handler,
     ],

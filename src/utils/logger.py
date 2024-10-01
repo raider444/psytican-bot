@@ -1,5 +1,5 @@
 import logging
-from src.config import settings
+from src.configs.config import settings
 
 
 logging.basicConfig(

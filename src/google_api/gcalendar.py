@@ -4,7 +4,7 @@ import json
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from src.config import settings
+from src.configs.config import settings
 from src.models.calendar.event import CalendarEvent
 from src.utils.logger import logger
 

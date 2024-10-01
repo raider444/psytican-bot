@@ -1,0 +1,19 @@
+---
+{{- if .Values.config.acl -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "psytican-bot.fullname" . }}-configfiles
+  labels:
+    {{- include "psytican-bot.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+  {{- with .Values.config.acl.allowedChats }}
+    allowedChats:
+    {{ toYaml . | nindent 6 }}
+  {{- end }}
+  {{- with .Values.config.acl.adminUsers }}
+    adminUsers:
+    {{ toYaml . | nindent 6 }}
+  {{- end }}
+{{- end -}}

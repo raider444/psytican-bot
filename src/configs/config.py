@@ -1,5 +1,6 @@
 import os
 
+from pathlib import Path
 from pydantic import Field, SecretStr, HttpUrl
 from pydantic_settings import (
     BaseSettings,
@@ -17,6 +18,7 @@ class Settings(BaseSettings):
     SCOPES: list = ["https://www.googleapis.com/auth/calendar"]
     CALENDAR_ID: str = "your_gcal_id@group.calendare.google.com"
     VAULT_SECRET_PATH: str = "secret/data/path/to/secret"
+    YAML_CONFIG_PATH: Path = "../config.yaml"
     GOOGLE_CLIENT_CONFIG: SecretStr = Field(
         ...,
         json_schema_extra={
