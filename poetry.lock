@@ -1179,6 +1179,7 @@ files = [
 [package.dependencies]
 pydantic = ">=2.7.0"
 python-dotenv = ">=0.21.0"
+pyyaml = {version = ">=6.0.1", optional = true, markers = "extra == \"yaml\""}
 
 [package.extras]
 azure-key-vault = ["azure-identity (>=1.16.0)", "azure-keyvault-secrets (>=4.8.0)"]
@@ -1375,7 +1376,7 @@ files = [
 name = "pyyaml"
 version = "6.0.2"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -1675,4 +1676,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "fd4b1e8cda0f0b82cf68fc3727b9ccfa41eb2e84adada6c65c04b6e309d3ad3d"
+content-hash = "bca4b455330e6c823c41ccb66276bd3bab6d0d79a4d3fe352f618f8cd89924dd"

@@ -23,6 +23,9 @@ helm install psytican-bot oci://git.psynet.su/genesis/psytican-bot-experiment/he
 | `config.vault.url` | Vault url | - |
 | `config.vault.secretPath` | Path to secrets in Vault | - |
 | `config.vault.kubernetesRole` | Vault role to use with kubernetes | - |
+| `config.acl` | Configure allowed chats and admin users | `{}` |
+| `config.acl.allowedChats` | List of allowed chat ids | `[]` |
+| `config.acl.adminUsers` | List of users with admin privileges | `[]` |
 | `ingress.enabled` | Enables ingress | false |
 | `ingress.className` | Name of Ingress Class | `""` |
 | `ingress.annotations` | Ingress annotations | `{}` |
