@@ -41,7 +41,8 @@ spec:
                 name: {{ include "psytican-bot.fullname" . }}-config
           {{- if .Values.config.acl }}
           env:
-            YAML_CONFIG_PATH: /opt/psytican/psytican-bot/etc/config.yaml
+            - name: YAML_CONFIG_PATH
+              value: /opt/psytican/psytican-bot/etc/config.yaml
           {{- end }}
           ports:
             - name: http

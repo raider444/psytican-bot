@@ -55,7 +55,7 @@ async def process_update(request: Request):
     return Response(status_code=HTTPStatus.OK)
 
 
-@app.get("/healtz")
+@app.get("/healthz")
 async def healthz(request: Request):
     response = {"version": version("psytican-bot"), "status": "ok"}
     return JSONResponse(
