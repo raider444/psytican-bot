@@ -39,10 +39,10 @@ GET_EVENTS, EVENT_MENU, DELETE_EVENT, EVENT_CONTROL = map(chr, range(5, 9))
 END = ConversationHandler.END
 
 # Regex patterns
-MESSAGE_PATTERNS = r"^(new\ event|book|бук|get\ events)$"
-MESSAGE_NEW_EVENT_PATTERNS = r"^(new\ event|book|бук)$"
-MESSAGE_GET_EVENT_PATTERNS = r"^(get\ events)$"
-MESSAGE_CANCEL_PATTERNS = r"^(cancel|stop)$"
+MESSAGE_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук|[Gg]et\ events)$"
+MESSAGE_NEW_EVENT_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук)$"
+MESSAGE_GET_EVENT_PATTERNS = r"^([Gg]et\ events)$"
+MESSAGE_CANCEL_PATTERNS = r"^([Cc]ancel|[Ss]top)$"
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -190,9 +190,14 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     event_matrix = event_list(events=events)
     context.user_data["event_list"] = event_matrix
     logger.debug(f"{events=}")
-    reply_txt = f"Next {settings.EVENTS_PER_LIST} events"
+    reply_txt = (
+        f"Next {settings.EVENTS_PER_LIST} events:\n"
+        f"                                                                     "
+        f"                                                                 ->\n"
+    )
     logger.debug(f"{reply_txt=}")
     keyboard = []
+    event_list_text = []
     if len(event_matrix) > 0:
         for event in event_matrix:
             event_link = event.html_link
@@ -202,6 +207,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             else:
                 date = f"{event.start.date}]-[{event.end.date}"
             button_text = f"[{date}]: {event.summary}"
+            event_list_text.append(f"<b>[{date}]</b>: {event.summary}")
             logger.debug(f"{event.model_dump_json()=}")
             if (
                 update.effective_user.username in Common.admin_acl.usernames
@@ -224,6 +230,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     InlineKeyboardButton(text=button_text, callback_data=callback_data)
                 ]
                 keyboard.append(row)
+        reply_txt = reply_txt + "\n".join(event_list_text)
     else:
         logger.info("No events found in calendar")
         reply_txt = "No upcoming events"
