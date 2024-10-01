@@ -21,7 +21,6 @@ from src.configs.config import settings
 from src.google_api.gcalendar import GoogleCalendar
 from src.models.calendar.event import CalendarEvent, CalendarDateTime
 from src.models.calendar.event_meta import CalendarEventMetadata
-from src.telegram.tg_acl import ChatACL
 from src.telegram.utils import format_calndar_date
 from src.utils.logger import logger
 
@@ -44,21 +43,6 @@ MESSAGE_PATTERNS = r"^(new\ event|book|бук|get\ events)$"
 MESSAGE_NEW_EVENT_PATTERNS = r"^(new\ event|book|бук)$"
 MESSAGE_GET_EVENT_PATTERNS = r"^(get\ events)$"
 MESSAGE_CANCEL_PATTERNS = r"^(cancel|stop)$"
-
-global_filter = ChatACL()
-# def chat_acl() -> list[int]:
-#     yaml_settings.__init__
-#     # acl = (filters.ALL)
-#     admin_list = yaml_settings.admin_users if yaml_settings.admin_users else []
-#     logger.debug(f'{admin_list=}')
-#     group_list = yaml_settings.allowed_chats if yaml_settings.allowed_chats else []
-#     logger.debug(f'{group_list=}')
-#     chat_acl = admin_list + group_list
-#     # if len(chat_acl) > 0:
-#     #     acl = filters.Chat(chat_acl)
-#     return {e for e in chat_acl}
-
-# allowed_chats = filters.Chat(1)
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -692,7 +676,12 @@ event_editor_handler = ConversationHandler(
             edit_event,
             pattern=("^" + str(EDIT_EVENT) + "$|^" + str(EVENT_CREATE) + "$"),
         ),
-        MessageHandler(filters.Regex(MESSAGE_NEW_EVENT_PATTERNS), button),
+        MessageHandler(
+            filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
+            & (Common.chat_acl | Common.admin_acl),
+            button,
+            # filters=filters.Regex(MESSAGE_NEW_EVENT_PATTERNS) & Common.chat_acl | Common.admin_acl
+        ),
     ],
     states={
         EVENT_EDITOR: [
@@ -719,7 +708,11 @@ event_list_conv_handler = ConversationHandler(
     name="event_list",
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        MessageHandler(filters.Regex(MESSAGE_GET_EVENT_PATTERNS), get_events_handler),
+        MessageHandler(
+            filters.Regex(MESSAGE_GET_EVENT_PATTERNS)
+            & (Common.chat_acl | Common.admin_acl),
+            get_events_handler,
+        ),
         CallbackQueryHandler(get_events_handler, pattern="^" + str(GET_EVENTS) + "$"),
     ],
     states={
@@ -752,15 +745,10 @@ conv_handler = ConversationHandler(
     name="main",
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        # CommandHandler("start", start),
-        # CommandHandler("start", start, filters=(filters.ALL & filters.ChatType.GROUPS)),  # TODO
-        # CommandHandler("start", start, filters=Common.chat_acl),  # TODO
-        # CommandHandler("start", start, filters=Common.global_filter),  # TODO
         CommandHandler(
             "start", start, filters=(Common.chat_acl | Common.admin_acl)
         ),  # Only this works
-        # CommandHandler("start", start, filters=(chat_acl() & filters.ChatType.GROUPS)),  # TODO
-        MessageHandler(filters.Regex(r"^(calendar)$"), button),
+        # MessageHandler(filters.Regex(r"^(calendar)$"), button),
         event_list_conv_handler,
         event_editor_handler,
     ],

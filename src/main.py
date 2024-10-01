@@ -70,12 +70,9 @@ async def metric(request: Request):
 
 @app.patch("/update_acls")
 async def update_acls(request: Request):
-    # yaml_settings.__init__
     Common.update_acl()
     return Response(
         status_code=HTTPStatus.NO_CONTENT,
-        # content=json.dumps(response),
-        # headers={"Content-Type": "application/json"}
     )
 
 

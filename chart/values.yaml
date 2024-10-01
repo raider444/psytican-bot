@@ -51,7 +51,7 @@ config:
     # url: "https://vault.example.com"
     # secretPath: psytican-bot/data/psytican-bot
     # kubernetesRole: psytican-bot-ro
-  acl: []
+  acl: {}
     # allowedChats: []
     # adminUsers: []
 

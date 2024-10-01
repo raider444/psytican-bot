@@ -12,7 +12,7 @@ class ChatACL(Chat):
 
     def update_acl(self, chats: List[int]):
         chat_set = set()
-        if chats is None:
+        if not chats:
             chats = []
         for chat in chats:
             chat_set.add(chat)
@@ -32,14 +32,14 @@ class ChatACL(Chat):
 class AdminACL(Chat):
     __slots__ = ()
 
-    def __init__(self, usernames=None, chat_ids=None, allow_empty: bool = True):
-        super().__init__(chat_ids, usernames, allow_empty=True)
+    def __init__(self, usernames=None, chat_ids=None, allow_empty: bool = False):
+        super().__init__(chat_ids, usernames, allow_empty=False)
         self.allow_empty = allow_empty
 
     def update_acl(self, admins: List[str]):
         logger.debug(f"AdminACLs: {self.chat_ids=}")
         admin_set = set()
-        if admins is None:
+        if not admins:
             admins = []
         for admin in admins:
             admin_set.add(admin)
