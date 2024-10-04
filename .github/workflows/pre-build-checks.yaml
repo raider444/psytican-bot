@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.12
 
@@ -37,12 +37,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.12
       - name: Install poetry
-        run: pip3 install poetry==1.4.2
+        run: pip3 install poetry==1.4.2 setuptools
+      - name: Disable venv create
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - uses: actions/cache@v3
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-interaction --no-ansi
       - name: Pytest
-        run: poetry run pytest
+        run: poetry run pytest -v
