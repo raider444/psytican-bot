@@ -55,11 +55,11 @@ jobs:
         run: poetry install --no-interaction --no-ansi
       - name: Pytest
         run: poetry run pytest -v
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
+      - name: Surface failing tests
+        if: always()
+        uses: pmeier/pytest-results-action@main
         with:
-          name: Pytest Tests
           path: junit.xml
-          reporter: java-junit
-          # token: ${{ github.token }}
+          summary: true
+          fail-on-empty: true
+          title: Test results
