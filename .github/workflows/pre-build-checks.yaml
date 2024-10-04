@@ -1,12 +1,5 @@
 name: Lints and unit tests
 
-permissions:
-  pull-requests: write
-  contents: write
-  statuses: write
-  checks: write
-  actions: write
-
 on:
   pull_request:
     branches: develop
@@ -35,6 +28,12 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure --color always
   pytest:
+    permissions:
+      pull-requests: write
+      contents: write
+      statuses: write
+      checks: write
+      actions: write
     name: Run Pytest
     runs-on: ubuntu-latest
     env:
