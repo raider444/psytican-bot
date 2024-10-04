@@ -1,5 +1,12 @@
 name: Lints and unit tests
 
+permissions:
+  pull-requests: write
+  contents: write
+  statuses: write
+  checks: write
+  actions: write
+
 on:
   pull_request:
     branches: develop
