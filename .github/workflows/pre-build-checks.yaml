@@ -30,6 +30,10 @@ jobs:
   pytest:
     name: Run Pytest
     runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLIENT_CONFIG: "{}"
+      TELEGRAM_BOT_TOKEN: "fake_token"
+      WEBHOOK_SECRET: "fake secret"
 
     steps:
       - uses: actions/checkout@v4
