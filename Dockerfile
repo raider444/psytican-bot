@@ -4,7 +4,7 @@ ARG POETRY_VERSION=1.4.2 \
     POETRY_HOME=/usr/local
 
 RUN mkdir -p /opt/psytican/psytican-bot \
-    && addgroup --gid 2000 psytican \ 
+    && addgroup --gid 2000 psytican \
     && useradd -d /opt/psytican -s /bin/bash -g psytican -u 2000 psytican \
     && chown -R psytican:psytican /opt/psytican \
     && apt-get update -y \
