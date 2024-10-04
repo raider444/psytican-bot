@@ -55,3 +55,11 @@ jobs:
         run: poetry install --no-interaction --no-ansi
       - name: Pytest
         run: poetry run pytest -v
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Pytest Tests
+          path: junit.xml
+          reporter: jest-junit
+          # token: ${{ github.token }}
