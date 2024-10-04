@@ -61,5 +61,5 @@ jobs:
         with:
           name: Pytest Tests
           path: junit.xml
-          reporter: jest-junit
+          reporter: java-junit
           # token: ${{ github.token }}
