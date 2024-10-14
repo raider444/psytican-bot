@@ -14,6 +14,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
+      packages: write
 
     steps:
       # Note: we need to checkout the repository at the workflow sha in case during the workflow
