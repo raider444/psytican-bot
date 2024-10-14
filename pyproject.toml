@@ -45,7 +45,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.semantic_release]
 assets = []
 build_command = """
-    pip install poetry==1.4.2 \
+    pip install poetry==1.4.2 pybump \
     && poetry build \
     && pybump bump --file chart/Chart.yaml --level patch
 """
@@ -120,5 +120,5 @@ ignore_token_for_push = false
 insecure = false
 
 [tool.semantic_release.publish]
-dist_glob_patterns = ["dist/*"]
+dist_glob_patterns = ["dist/*", "psytican-bot-*.tgz"]
 upload_to_vcs_release = true
