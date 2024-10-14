@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
+      - release/**
       - cicd
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -41,6 +41,18 @@ jobs:
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.10.3
         if: steps.release.outputs.released == 'true'
+
+      - name: Publish Helm chart
+        uses: raider444/helm-oci-chart-releaser@1.0.0
+        with:
+          name: psytican-bot
+          repository: raider444/charts
+          tag: ${{ steps.release.outputs }}
+          path: chart # Default charts/{name}
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          update_dependencies: 'true' # Defaults to false
 
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v9.8.9
