@@ -47,7 +47,7 @@ jobs:
         with:
           name: psytican-bot
           repository: raider444/charts
-          tag: ${{ steps.release.outputs }}
+          # tag: ${{ steps.release.outputs }}
           path: chart # Default charts/{name}
           registry: ghcr.io
           registry_username: ${{ github.actor }}
