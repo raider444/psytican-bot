@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - release/**
-      - cicd
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -45,15 +44,15 @@ jobs:
 
       - name: Publish Helm chart
         uses: raider444/helm-oci-chart-releaser@1.0.5
+        if: steps.release.outputs.released == 'true'
         with:
           name: psytican-bot
           repository: raider444/charts
-          # tag: ${{ steps.release.outputs }} # try to use tag defined in Chart.yaml
-          path: chart # Default charts/{name}
+          path: chart
           registry: ghcr.io
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
-          update_dependencies: 'true' # Defaults to false
+          update_dependencies: 'true'
 
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v9.8.9

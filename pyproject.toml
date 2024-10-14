@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "psytican-bot"
-version = "0.2.4-alpha.8"
+version = "0.2.3"
 description = "Psytican Helper bot"
 authors = ["Igor I Shatunov <genesis@psytican.com>"]
 license = "MIT"
@@ -72,10 +72,10 @@ match = "release/"
 prerelease_token = "rc"
 prerelease = true
 
-[tool.semantic_release.branches.cicd]
-match = "(cicd)"
-prerelease_token = "alpha"
-prerelease = true
+#[tool.semantic_release.branches.cicd]
+#match = "(cicd)"
+#prerelease_token = "alpha"
+#prerelease = true
 
 [tool.semantic_release.changelog.default_templates]
 changelog_file = "CHANGELOG.md"
@@ -106,8 +106,8 @@ default = "semantic-release <semantic-release>"
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["build", "chore", "ci", "cicd", "docs", "feat", "feature", "fix", "perf", "style", "refactor", "test"]
 minor_tags = ["feat", "feature"]
-patch_tags = ["fix", "perf", "cicd"]
-#patch_tags = ["fix", "perf"]
+#patch_tags = ["fix", "perf", "cicd"]
+patch_tags = ["fix", "perf"]
 default_bump_level = 0
 
 [tool.semantic_release.remote]
