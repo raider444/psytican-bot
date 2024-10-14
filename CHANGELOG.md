@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.4-alpha.8 (2024-10-14)
+
+### Cicd
+
+* cicd(Create pipeline #4): Fix docker registry permissions ([`f2537d2`](https://github.com/raider444/psytican-bot/commit/f2537d299a6ea32affd9a33aba1b299f361acffb))
+
+
 ## v0.2.4-alpha.7 (2024-10-14)
 
 ### Cicd
