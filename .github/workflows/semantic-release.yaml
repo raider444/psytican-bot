@@ -43,7 +43,7 @@ jobs:
         if: steps.release.outputs.released == 'true'
 
       - name: Publish Helm chart
-        uses: raider444/helm-oci-chart-releaser@1.0.3
+        uses: raider444/helm-oci-chart-releaser@1.0.4
         with:
           name: psytican-bot
           repository: raider444/charts
