@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.4-alpha.2 (2024-10-14)
+
+### Cicd
+
+* cicd(Create pipeline #4): Re pre-release ([`4dece1c`](https://github.com/raider444/psytican-bot/commit/4dece1ce7b46f40a2f6e2f0ccd65239a1c4d7ec2))
+
+
 ## v0.2.4-alpha.1 (2024-10-14)
 
 ### Cicd
