@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.4-alpha.6 (2024-10-14)
+
+### Cicd
+
+* cicd(Create pipeline #4): Re pre-release attepmt 5 ([`716cf35`](https://github.com/raider444/psytican-bot/commit/716cf35295935814d24ef89efcdc4628d609c23f))
+
+
 ## v0.2.4-alpha.5 (2024-10-14)
 
 ### Cicd
