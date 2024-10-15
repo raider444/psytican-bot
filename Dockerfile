@@ -31,6 +31,7 @@ RUN poetry install --no-ansi --no-root --without=dev
 
 FROM base as develop
 
+ENV PYTHONPATH="/opt/psytican/psytican-bot"
 ENV PORT=8000
 
 COPY . .
