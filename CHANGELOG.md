@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.2.4 (2024-10-15)
+
+### Cicd
+
+* cicd(Create pipeline #4): Update semantic-release pat for checkout step ([`19fd477`](https://github.com/raider444/psytican-bot/commit/19fd47739932ce2f5cda115ec74fc7a90c81eca8))
+
+* cicd(Create pipeline #4): Update semantic-release pat ([`83f0ce7`](https://github.com/raider444/psytican-bot/commit/83f0ce74576e2b276a17e0fe94ccb76a628b6ec2))
+
+* cicd(Create pipeline #4): Don't build images if no new version created ([`f5516a5`](https://github.com/raider444/psytican-bot/commit/f5516a5abb8be33943ee3bdea6ab7678ef7f7e39))
+
+### Unknown
+
+* Merge pull request #19 from raider444/fix-logs-and-text-refactor
+
+fix(all): Increase INFO log verbosity and change pencil position ([`b14160b`](https://github.com/raider444/psytican-bot/commit/b14160b8bb0121ab77416468f2fcf237a3770cb7))
+
+
 ## v0.2.4-rc.2 (2024-10-15)
 
 ### Fixes
