@@ -223,7 +223,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 and event.description.owner["id"] == update.effective_user.id
             ):
                 callback_data = str(EVENT_MENU) + event.id
-                button_text = button_text + "  ✏️"
+                button_text = "✏️ " + button_text
                 row = [
                     InlineKeyboardButton(text=button_text, callback_data=callback_data)
                 ]
