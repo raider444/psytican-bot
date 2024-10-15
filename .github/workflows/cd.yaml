@@ -33,7 +33,7 @@ jobs:
         id: detector
         run: |
           if $(echo ${{ github.ref_name }} | grep -Pq '[v]?^\d+.\d+.\d+$'); then
-              echo "image_target=main" >> $GITHUB_OUTPUT
+              echo "image_target=production" >> $GITHUB_OUTPUT
           else
               echo "image_target=develop" >> $GITHUB_OUTPUT
           fi
@@ -51,6 +51,8 @@ jobs:
           context: .
           build-args: |
             BOT_VERSION=${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           target: ${{ steps.detector.outputs.image_target }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
