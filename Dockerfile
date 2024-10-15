@@ -29,17 +29,6 @@ COPY pyproject.toml poetry.lock* setup.cfg ./
 RUN poetry install --no-ansi --no-root --without=dev
 
 
-FROM base AS develop
-
-ENV PYTHONPATH="/opt/psytican/psytican-bot"
-ENV PORT=8000
-
-COPY . .
-RUN poetry build \
-    && poetry install --no-ansi
-
-ENTRYPOINT [ "psytican-bot" ]
-
 FROM python:3.12-alpine AS production
 
 ARG BOT_VERSION
@@ -58,5 +47,17 @@ RUN mkdir -p /opt/psytican/psytican-bot \
 
 WORKDIR /opt/psytican/psytican-bot
 USER psytican
+
+ENTRYPOINT [ "psytican-bot" ]
+
+
+FROM base AS develop
+
+ENV PYTHONPATH="/opt/psytican/psytican-bot"
+ENV PORT=8000
+
+COPY . .
+RUN poetry build \
+    && poetry install --no-ansi
 
 ENTRYPOINT [ "psytican-bot" ]
