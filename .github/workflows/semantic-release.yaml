@@ -3,6 +3,8 @@ name: Continuous Delivery
 on:
   workflow_run:
     workflows: ["Pre-build Checks"]
+    types:
+      - completed
   # push:
   #   branches:
   #     - main
