@@ -87,8 +87,8 @@ jobs:
       contents: write
       packages: write
 
-    outputs:
-      release-info: ${{ steps.release.outputs }}
+    # outputs:
+    #   release-info: ${{ steps.release.outputs }}
 
     steps:
       # Note: we need to checkout the repository at the workflow sha in case during the workflow
