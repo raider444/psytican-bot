@@ -1,15 +1,23 @@
 # CHANGELOG
 
 
-## v0.2.4 (2024-10-15)
+## v0.2.4-rc.3 (2024-10-15)
 
 ### Cicd
+
+* cicd(Create pipeline #4): Fix pypi access and remove docker push from ci workflow ([`b2d06e8`](https://github.com/raider444/psytican-bot/commit/b2d06e83fa509dedfb09d5076b15333fc96e5d1d))
+
+* cicd(Create pipeline #4): Fix pypi access ([`b18cd56`](https://github.com/raider444/psytican-bot/commit/b18cd56bdc95bca311d33b17f8763bb43da662d3))
 
 * cicd(Create pipeline #4): Update semantic-release pat for checkout step ([`19fd477`](https://github.com/raider444/psytican-bot/commit/19fd47739932ce2f5cda115ec74fc7a90c81eca8))
 
 * cicd(Create pipeline #4): Update semantic-release pat ([`83f0ce7`](https://github.com/raider444/psytican-bot/commit/83f0ce74576e2b276a17e0fe94ccb76a628b6ec2))
 
 * cicd(Create pipeline #4): Don't build images if no new version created ([`f5516a5`](https://github.com/raider444/psytican-bot/commit/f5516a5abb8be33943ee3bdea6ab7678ef7f7e39))
+
+### Fixes
+
+* fix(Implement bot persistence #3): bump rc version ([`0b67166`](https://github.com/raider444/psytican-bot/commit/0b67166b46484a755111e1a66f457ca00ad65a53))
 
 ### Unknown
 
