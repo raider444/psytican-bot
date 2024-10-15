@@ -116,7 +116,6 @@ jobs:
 
       - name: Publish Helm chart
         uses: raider444/helm-oci-chart-releaser@1.0.5
-        # if: steps.release.outputs.is_prerelease == 'false'
         if: steps.release.outputs.released == 'true' && steps.release.outputs.is_prerelease == 'false'
         with:
           name: psytican-bot
