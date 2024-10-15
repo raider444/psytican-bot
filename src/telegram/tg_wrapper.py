@@ -90,6 +90,10 @@ async def update_acls(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     """Sends a message with three inline buttons attached."""
+    logger.info(
+        f'User "{update.effective_user.username}" (ID={update.effective_user.id}) '
+        f'started conversation in the chat with ID "{update.effective_chat.id}"'
+    )
     # logger.debug(f'{allowed_chats=}')
     keyboard = [["get events", "book", "cancel"]]
 
@@ -175,7 +179,7 @@ def event_list(events: GoogleCalendar) -> list[CalendarEvent]:
             logger.debug(f"{metadata_json=}")
             metadata = CalendarEventMetadata.model_validate_json(metadata_json)
             row.description = metadata
-        logger.debug(
+        logger.info(
             f'EVENT: Topic: "{event_txt.summary}" ' f'Date: "{event_txt.start.date}"'
         )
         logger.debug(f"{event_desc=}")
@@ -184,6 +188,10 @@ def event_list(events: GoogleCalendar) -> list[CalendarEvent]:
 
 
 async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
+    logger.info(
+        f'User "{update.effective_user.username}" (ID={update.effective_user.id} '
+        f"requested event list in chat ID={update.effective_chat.id}"
+    )
     events = GoogleCalendar().get_events(
         calendar_id=settings.CALENDAR_ID, max_results=settings.EVENTS_PER_LIST
     )
@@ -215,7 +223,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 and event.description.owner["id"] == update.effective_user.id
             ):
                 callback_data = str(EVENT_MENU) + event.id
-                button_text = button_text + "  ✏️"
+                button_text = "✏️ " + button_text
                 row = [
                     InlineKeyboardButton(text=button_text, callback_data=callback_data)
                 ]
@@ -375,6 +383,10 @@ async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     logger.debug(f"{update.callback_query.data=}")
     logger.debug(f"{context.user_data=}")
     event_id = update.callback_query.data.replace(str(EVENT_MENU), "")
+    logger.info(
+        f'User "{update.effective_user.id}" (ID={update.effective_user.id}) '
+        f'edits event "{event_id}" in chat (ID={update.effective_chat.id})'
+    )
     events = context.user_data.get("event_list")
     for evnt in events:
         if evnt.id == event_id:

@@ -1,58 +1,86 @@
 # CHANGELOG
 
 
-## v0.2.4-alpha.8 (2024-10-14)
+## v0.2.4-rc.2 (2024-10-15)
+
+### Fixes
+
+* fix(tg_wrapper): Fix release workflow ([`b1b61c7`](https://github.com/raider444/psytican-bot/commit/b1b61c7cc4b9f0f746e6dcf2f31dd248f9e529c6))
+
+
+## v0.2.4-rc.1 (2024-10-15)
+
+### Chores
+
+* chore(code of conduct): Add conditions ([`42606ea`](https://github.com/raider444/psytican-bot/commit/42606eadae3c437ca845fc5447c3321f2e72aae2))
+
+* chore(code of conduct): Rename workflows ([`743a93d`](https://github.com/raider444/psytican-bot/commit/743a93db258ce2f66f3fca03d45610489a953a6c))
+
+* chore(code of conduct): Fix workflow description ([`ea84317`](https://github.com/raider444/psytican-bot/commit/ea84317e397f03c88978eb002e961280e411bdbb))
+
+* chore(code of conduct): Remove all jobs conditions ([`4fb99e7`](https://github.com/raider444/psytican-bot/commit/4fb99e7c149f38b97a71747454c5eca0a8474115))
+
+* chore(code of conduct): Test job sequence 2 ([`2566e93`](https://github.com/raider444/psytican-bot/commit/2566e93513b2d878f8165c7679563f4ff64e01e4))
+
+* chore(code of conduct): Test job sequence ([`42c1d9f`](https://github.com/raider444/psytican-bot/commit/42c1d9fc4ec040c74fd98bf99d918a49dfa9f843))
+
+* chore(code of conduct): Test job conditions ([`bd45300`](https://github.com/raider444/psytican-bot/commit/bd453001c0fa71341a053a308643fa397f0da672))
+
+* chore(code of conduct): Sequential workflow run ([`8a7846b`](https://github.com/raider444/psytican-bot/commit/8a7846bc388560bba09066ba60b5573248630ec3))
+
+* chore(code of conduct): Add trailing cr ([`ffd69fa`](https://github.com/raider444/psytican-bot/commit/ffd69faa0106e33a8551f263b04940048b7e3178))
 
 ### Cicd
+
+* cicd(Create pipeline #4): Fix bad outputs ([`03a78b0`](https://github.com/raider444/psytican-bot/commit/03a78b0c73a5db60c82b7e5b2ce9044867704e03))
+
+* cicd(github actions): Build and images and charts, semantic-release
+
+* chore(code of conduct): Remove comments from workflow
+
+* chore(code of conduct): Merge all to one workflow
+
+* chore(code of conduct): run
+
+* cicd(Create pipeline #4): Disable pypi publish on pre-releases
+
+* cicd(Create pipeline #4): Understand what this does
+
+* cicd(Create pipeline #4): Add workflow for image build on tags
+
+* cicd(Create pipeline #4): Fix typo
+
+* cicd(Create pipeline #4): Fix output definition
+
+* cicd(Create pipeline #4): Add docker cache
+
+* cicd(Create pipeline #4): Use oci cache
+
+* cicd(Create pipeline #4): Setup buildx builder
+
+* cicd(Create pipeline #4): Fix dockerfile for prod
+
+* cicd(Create pipeline #4): Fix dockerfile for develop
+
+* cicd(Create pipeline #4): CD part done ([`4fc80ed`](https://github.com/raider444/psytican-bot/commit/4fc80ed93bb25cc5bec8ce0bece69fba0a9aeca6))
+
+* cicd(Create pipeline #4): Add dockerfile labels ([`bf2c240`](https://github.com/raider444/psytican-bot/commit/bf2c2408336c371e12e034007613724d924bd384))
+
+* cicd(Create pipeline #4): Semantic release implemented ([`6ac8756`](https://github.com/raider444/psytican-bot/commit/6ac87567b8f71ae864495a3f90866ff3d8eb980a))
 
 * cicd(Create pipeline #4): Fix docker registry permissions ([`f2537d2`](https://github.com/raider444/psytican-bot/commit/f2537d299a6ea32affd9a33aba1b299f361acffb))
 
-
-## v0.2.4-alpha.7 (2024-10-14)
-
-### Cicd
-
 * cicd(Create pipeline #4): Re pre-release attepmt 6 ([`e56576f`](https://github.com/raider444/psytican-bot/commit/e56576f5889829feb6eb4eb829186c668e9e3d7e))
-
-
-## v0.2.4-alpha.6 (2024-10-14)
-
-### Cicd
 
 * cicd(Create pipeline #4): Re pre-release attepmt 5 ([`716cf35`](https://github.com/raider444/psytican-bot/commit/716cf35295935814d24ef89efcdc4628d609c23f))
 
-
-## v0.2.4-alpha.5 (2024-10-14)
-
-### Cicd
-
 * cicd(Create pipeline #4): Re pre-release attepmt 4 ([`b974072`](https://github.com/raider444/psytican-bot/commit/b974072221510bd8221b8fda2fe12f550c7e2078))
-
-
-## v0.2.4-alpha.4 (2024-10-14)
-
-### Cicd
 
 * cicd(Create pipeline #4): Re pre-release attepmt 3 ([`ec719f6`](https://github.com/raider444/psytican-bot/commit/ec719f68ba39622216a624168f3319f9a999dd70))
 
-
-## v0.2.4-alpha.3 (2024-10-14)
-
-### Cicd
-
 * cicd(Create pipeline #4): Re pre-release attepmt 2 ([`9645710`](https://github.com/raider444/psytican-bot/commit/9645710e0fe48d85946ad20170cd4e192ce25d47))
 
-
-## v0.2.4-alpha.2 (2024-10-14)
-
-### Cicd
-
 * cicd(Create pipeline #4): Re pre-release ([`4dece1c`](https://github.com/raider444/psytican-bot/commit/4dece1ce7b46f40a2f6e2f0ccd65239a1c4d7ec2))
-
-
-## v0.2.4-alpha.1 (2024-10-14)
-
-### Cicd
 
 * cicd(Create pipeline #4): fix Check helm chart build ([`bbab8b2`](https://github.com/raider444/psytican-bot/commit/bbab8b2a079ad7a6bca7ff5918d676d73e96ae9d))
 
@@ -84,7 +112,27 @@
 
 * cicd(Create pipeline #4): Add pre-build checks ([`8004eda`](https://github.com/raider444/psytican-bot/commit/8004edafc93f95238c4370d83b473846697f2552))
 
+### Fixes
+
+* fix(tg_wrapper): Move pencil to the beginning of the button ([`e88bead`](https://github.com/raider444/psytican-bot/commit/e88bead471e52039a12bf33afe00f66c15ecc1c9))
+
+* fix(all): Increase INFO log verbosity ([`14e10d5`](https://github.com/raider444/psytican-bot/commit/14e10d5403e06e40a3d4c9a827af190062e855b4))
+
 ### Unknown
+
+* Merge branch 'main' into fix-logs-and-text-refactor ([`3f7576e`](https://github.com/raider444/psytican-bot/commit/3f7576e91747492e40f7907d4d74b22fe5159a6a))
+
+* Delete .github/workflows/semantic-release.yaml ([`150d985`](https://github.com/raider444/psytican-bot/commit/150d9855f0792e69d351e5c0fdb94890832bf133))
+
+* Merge pull request #15 from raider444/release/123
+
+chore(code of conduct): Add conditions ([`949f0a2`](https://github.com/raider444/psytican-bot/commit/949f0a2b2a15803476031fd64eb172a20c156655))
+
+* Merge pull request #14 from raider444/release/123
+
+Release/123 ([`40b7d37`](https://github.com/raider444/psytican-bot/commit/40b7d37ddaf07a2f3279761a779f0e38ddfa2d8f))
+
+* Merge branch 'main' into cicd ([`cf115ae`](https://github.com/raider444/psytican-bot/commit/cf115ae12fc6f6324124834a624f97f09cfb3ae3))
 
 * Merge pull request #12 from raider444/main
 
