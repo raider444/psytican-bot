@@ -1,8 +1,12 @@
-name: Lints and unit tests
+name: Pre-build Checks
 
 on:
   pull_request:
-    branches: develop
+    branches: main
+  push:
+    branches:
+      - main
+      - release/**
 
 jobs:
   pre-commit:
@@ -61,14 +65,6 @@ jobs:
         run: poetry install --no-interaction --no-ansi
       - name: Pytest
         run: poetry run pytest -v
-      # - name: Surface failing tests
-      #   if: always()
-      #   uses: pmeier/pytest-results-action@main
-      #   with:
-      #     path: junit.xml
-      #     summary: true
-      #     fail-on-empty: true
-      #     title: Test results
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
