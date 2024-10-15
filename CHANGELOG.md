@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## v0.2.4-rc.2 (2024-10-15)
+
+### Fixes
+
+* fix(tg_wrapper): Fix release workflow ([`b1b61c7`](https://github.com/raider444/psytican-bot/commit/b1b61c7cc4b9f0f746e6dcf2f31dd248f9e529c6))
+
+
 ## v0.2.4-rc.1 (2024-10-15)
 
 ### Chores
