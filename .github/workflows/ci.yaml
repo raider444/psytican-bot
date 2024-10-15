@@ -140,7 +140,9 @@ jobs:
           tag: ${{ steps.release.outputs.tag }}
 
   build-and-push-image:
-    if: github.ref_name == 'main' || startsWith(github.ref_name, 'release/')
+    if: |
+      (github.ref_name == 'main' || startsWith(github.ref_name, 'release/')) &&
+      needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
     needs: release
     env:
@@ -181,6 +183,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ needs.release.outputs.tag }}
+          flavor: |
+            latest=true
 
       - name: Build and push Docker image
         id: push
