@@ -46,7 +46,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Build and push Docker image (Production)
+      - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6
         with:
