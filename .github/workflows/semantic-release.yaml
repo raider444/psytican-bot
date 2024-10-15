@@ -2,21 +2,13 @@ name: Continuous Delivery
 
 on:
   workflow_run:
-    workflows: ["Pre-build Checks"]
+    workflows:
+      - Pre-build Checks
     types:
       - completed
-  # push:
-  #   branches:
-  #     - main
-  #     - release/**
+
 jobs:
   release:
-    # if: github.event.workflow_run.conclusion == 'success'
-    # |
-    #   github.event.workflow_run.conclusion == 'success' &&
-    #   (github.event.workflow_run.head_branch == 'main' ||
-    #   github.event.workflow_run.head_branch == 'release/123' ||
-    #   startsWith(github.event.workflow_run.head_branch, 'release/'))
     runs-on: ubuntu-latest
     concurrency: release
 
