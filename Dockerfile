@@ -40,7 +40,7 @@ RUN poetry build \
 
 ENTRYPOINT [ "psytican-bot" ]
 
-FROM python:3.12 AS production
+FROM python:3.12-alpine AS production
 
 ARG BOT_VERSION
 
@@ -51,8 +51,8 @@ LABEL org.opencontainers.image.licenses=MIT
 
 ENV PORT=8000
 RUN mkdir -p /opt/psytican/psytican-bot \
-    && addgroup --gid 2000 psytican \
-    && useradd -d /opt/psytican -s /bin/bash -g psytican -u 2000 psytican \
+    && addgroup -g 2000 psytican \
+    && adduser -h /opt/psytican -s /bin/ash -G psytican -u 2000 -D psytican \
     && chown -R psytican:psytican /opt/psytican \
     && pip install psytican-bot==${BOT_VERSION}
 
