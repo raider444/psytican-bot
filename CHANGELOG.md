@@ -1,12 +1,22 @@
 # CHANGELOG
 
 
+## v0.2.4 (2024-10-15)
+
+### Unknown
+
+* Merge pull request #20 from raider444/release/0.2.4
+
+Release/0.2.4 ([`e5cafb4`](https://github.com/raider444/psytican-bot/commit/e5cafb4bf363d556d0ae87d52db3604e7e4a510a))
+
+* Merge branch 'main' into release/0.2.4 ([`a9a1f15`](https://github.com/raider444/psytican-bot/commit/a9a1f156dbdea1643d004b01601309b12eb1387b))
+
+
 ## v0.2.4-rc.3 (2024-10-15)
 
 ### Cicd
 
 * cicd(Create pipeline #4): Fix pypi access and remove docker push from ci workflow ([`b2d06e8`](https://github.com/raider444/psytican-bot/commit/b2d06e83fa509dedfb09d5076b15333fc96e5d1d))
-
 
 * cicd(Create pipeline #4): Fix pypi access ([`b18cd56`](https://github.com/raider444/psytican-bot/commit/b18cd56bdc95bca311d33b17f8763bb43da662d3))
 
