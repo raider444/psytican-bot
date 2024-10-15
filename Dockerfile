@@ -1,4 +1,4 @@
-FROM python:3.12 as base
+FROM python:3.12 AS base
 
 LABEL org.opencontainers.image.authors="Igor I Shatunov"
 LABEL org.opencontainers.image.source=https://github.com/raider444/psytican-bot
@@ -29,7 +29,7 @@ COPY pyproject.toml poetry.lock* setup.cfg ./
 RUN poetry install --no-ansi --no-root --without=dev
 
 
-FROM base as develop
+FROM base AS develop
 
 ENV PYTHONPATH="/opt/psytican/psytican-bot"
 ENV PORT=8000
@@ -40,7 +40,7 @@ RUN poetry build \
 
 ENTRYPOINT [ "psytican-bot" ]
 
-FROM python:3.12 as production
+FROM python:3.12 AS production
 
 ARG BOT_VERSION
 
