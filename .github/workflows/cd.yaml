@@ -33,9 +33,9 @@ jobs:
         id: detector
         run: |
           if $(echo ${{ github.ref_name }} | grep -Pq '[v]?^\d+.\d+.\d+$'); then
-              echo "main" >> $GITHUB_OUTPUT
+              echo "image_target=main" >> $GITHUB_OUTPUT
           else
-              echo "develop" >> $GITHUB_OUTPUT
+              echo "image_target=develop" >> $GITHUB_OUTPUT
           fi
 
       - name: Extract metadata (tags, labels) for Docker
@@ -51,7 +51,7 @@ jobs:
           context: .
           build-args: |
             BOT_VERSION=${{ github.ref_name }}
-          target: ${{ steps.detector.outputs.value }}
+          target: ${{ steps.detector.outputs.image_target }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
