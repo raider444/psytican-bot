@@ -87,6 +87,9 @@ jobs:
       contents: write
       packages: write
 
+    outputs:
+      release-info: ${{ steps.release.outputs }}
+
     steps:
       # Note: we need to checkout the repository at the workflow sha in case during the workflow
       # the branch was updated. To keep PSR working with the configured release branches,
@@ -116,7 +119,6 @@ jobs:
 
       - name: Publish Helm chart
         uses: raider444/helm-oci-chart-releaser@1.0.5
-        # if: steps.release.outputs.is_prerelease == 'false'
         if: steps.release.outputs.released == 'true' && steps.release.outputs.is_prerelease == 'false'
         with:
           name: psytican-bot

@@ -31,6 +31,7 @@ RUN poetry install --no-ansi --no-root --without=dev
 
 FROM base as develop
 
+ENV PYTHONPATH="/opt/psytican/psytican-bot"
 ENV PORT=8000
 
 COPY . .
@@ -39,7 +40,7 @@ RUN poetry build \
 
 ENTRYPOINT [ "psytican-bot" ]
 
-FROM python:3.12 as main
+FROM python:3.12 as production
 
 ARG BOT_VERSION
 
@@ -49,6 +50,13 @@ LABEL org.opencontainers.image.description="Psytican chat helper bot image"
 LABEL org.opencontainers.image.licenses=MIT
 
 ENV PORT=8000
-RUN pip install psytican-bot==${BOT_VERSION}
+RUN mkdir -p /opt/psytican/psytican-bot \
+    && addgroup --gid 2000 psytican \
+    && useradd -d /opt/psytican -s /bin/bash -g psytican -u 2000 psytican \
+    && chown -R psytican:psytican /opt/psytican \
+    && pip install psytican-bot==${BOT_VERSION}
+
+WORKDIR /opt/psytican/psytican-bot
+USER psytican
 
 ENTRYPOINT [ "psytican-bot" ]
