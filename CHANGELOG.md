@@ -1,6 +1,39 @@
 # CHANGELOG
 
 
+## v0.2.5 (2024-10-15)
+
+### Cicd
+
+* cicd(#4): Make possible to build dev docker image without args and target definitions ([`b891a67`](https://github.com/raider444/psytican-bot/commit/b891a67e7be9fb3b73112b98c6314c12940d07c0))
+
+* cicd(Dockerfile): Merge pull request #22 from raider444:migrate-to-alpine
+
+cicd(Dockerfile): Migrate to alpine ([`fbd7501`](https://github.com/raider444/psytican-bot/commit/fbd7501082aee0c84d2757a691e279e8c8626228))
+
+* cicd(Dockerfile): Migrate to alpine ([`ffcbbbb`](https://github.com/raider444/psytican-bot/commit/ffcbbbb649baf79ad0e70816e3b5c321e14faf91))
+
+* cicd(helm): Fix container image in values ([`3d64c3a`](https://github.com/raider444/psytican-bot/commit/3d64c3af59c08b6803e553b67cc89825a9a7231d))
+
+### Fixes
+
+* fix(security): Update starlette and dependencies ([`2fe4ed6`](https://github.com/raider444/psytican-bot/commit/2fe4ed64408e349d456289041e1495f6a4a64258))
+
+### Unknown
+
+* Merge pull request #24 from raider444:hotfix/CVE-2024-47874
+
+fix(security): Update starlette and dependencies ([`32b7f79`](https://github.com/raider444/psytican-bot/commit/32b7f791fa17d85686f79b7c4c7ad494ea0e4be6))
+
+* Merge pull request #23 from raider444:refactor-dockerfile
+
+cicd(#4): Refactor dockerfile ([`c48d831`](https://github.com/raider444/psytican-bot/commit/c48d831e1be9d045cfbc655b2e1b1f66240dfe97))
+
+* Merge pull request #21 from raider444/ci/fix-docker-and-helm
+
+cicd(helm): Fix container image in values ([`b23e03a`](https://github.com/raider444/psytican-bot/commit/b23e03a3739f5daf9e3182413ac262d50a1fa626))
+
+
 ## v0.2.4 (2024-10-15)
 
 ### Unknown
