@@ -1,4 +1,4 @@
-name: Pre-build Checks
+name: Prebuild Checks
 
 on:
   pull_request:

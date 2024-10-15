@@ -3,7 +3,7 @@ name: Continuous Delivery
 on:
   workflow_run:
     workflows:
-      - Pre-build Checks
+      - Prebuild Checks
     types:
       - completed
 
