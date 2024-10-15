@@ -7,6 +7,7 @@
 
 * cicd(Create pipeline #4): Fix pypi access and remove docker push from ci workflow ([`b2d06e8`](https://github.com/raider444/psytican-bot/commit/b2d06e83fa509dedfb09d5076b15333fc96e5d1d))
 
+
 * cicd(Create pipeline #4): Fix pypi access ([`b18cd56`](https://github.com/raider444/psytican-bot/commit/b18cd56bdc95bca311d33b17f8763bb43da662d3))
 
 * cicd(Create pipeline #4): Update semantic-release pat for checkout step ([`19fd477`](https://github.com/raider444/psytican-bot/commit/19fd47739932ce2f5cda115ec74fc7a90c81eca8))
