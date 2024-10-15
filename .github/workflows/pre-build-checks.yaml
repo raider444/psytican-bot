@@ -112,7 +112,7 @@ jobs:
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.10.3
-        if: steps.release.outputs.released == 'true'
+        if: steps.release.outputs.released == 'true' && steps.release.outputs.is_prerelease == 'false'
 
       - name: Publish Helm chart
         uses: raider444/helm-oci-chart-releaser@1.0.5
