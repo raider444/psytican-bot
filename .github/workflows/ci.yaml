@@ -1,0 +1,137 @@
+name: Continious Integration
+
+on:
+  pull_request:
+    branches: main
+  push:
+    branches:
+      - main
+      - release/**
+
+jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install pre-commit
+        run: pip3 install pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure --color always
+  pytest:
+    permissions:
+      pull-requests: write
+      contents: write
+      statuses: write
+      checks: write
+      actions: write
+    name: Run Pytest
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLIENT_CONFIG: "{}"
+      TELEGRAM_BOT_TOKEN: "fake_token"
+      WEBHOOK_SECRET: "fake secret"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Install poetry
+        run: pip3 install poetry==1.4.2 setuptools
+      - name: Disable venv create
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - uses: actions/cache@v4
+        name: Define a cache for the virtual environment based on the dependencies lock file
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-ansi
+      - name: Pytest
+        run: poetry run pytest -v
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: JUNIT Tests            # Name of the check run which will be created
+          path: junit.xml    # Path to test results
+          reporter: java-junit        # Format of test results
+
+  release:
+    name: Semantic release
+    if: github.ref_name == 'main' || startsWith(github.ref_name, 'release/')
+    needs:
+      - pre-commit
+      - pytest
+    runs-on: ubuntu-latest
+    concurrency: release
+
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+
+    outputs:
+      release-info: ${{ steps.release.outputs }}
+
+    steps:
+      # Note: we need to checkout the repository at the workflow sha in case during the workflow
+      # the branch was updated. To keep PSR working with the configured release branches,
+      # we force a checkout of the desired release branch but at the workflow sha HEAD.
+      - name: Setup | Checkout Repository at workflow sha
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Setup | Force correct release branch on workflow sha
+        run: |
+          git checkout -B ${{ github.ref_name }} ${{ github.sha }}
+
+      - name: Action | Semantic Version Release
+        id: release
+        # Adjust tag with desired version if applicable.
+        uses: python-semantic-release/python-semantic-release@v9.11.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+
+      - name: Publish | Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.10.3
+        if: steps.release.outputs.released == 'true' && steps.release.outputs.is_prerelease == 'false'
+
+      - name: Publish Helm chart
+        uses: raider444/helm-oci-chart-releaser@1.0.5
+        if: steps.release.outputs.released == 'true' && steps.release.outputs.is_prerelease == 'false'
+        with:
+          name: psytican-bot
+          repository: raider444/charts
+          path: chart
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          update_dependencies: 'true'
+
+      - name: Publish | Upload to GitHub Release Assets
+        uses: python-semantic-release/publish-action@v9.8.9
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
