@@ -5,6 +5,8 @@
 
 ### Cicd
 
+* cicd(Create pipeline #4): Fix pypi access ([`b18cd56`](https://github.com/raider444/psytican-bot/commit/b18cd56bdc95bca311d33b17f8763bb43da662d3))
+
 * cicd(Create pipeline #4): Update semantic-release pat for checkout step ([`19fd477`](https://github.com/raider444/psytican-bot/commit/19fd47739932ce2f5cda115ec74fc7a90c81eca8))
 
 * cicd(Create pipeline #4): Update semantic-release pat ([`83f0ce7`](https://github.com/raider444/psytican-bot/commit/83f0ce74576e2b276a17e0fe94ccb76a628b6ec2))
