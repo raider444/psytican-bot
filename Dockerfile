@@ -52,7 +52,8 @@ ENV PORT=8000
 RUN mkdir -p /opt/psytican/psytican-bot \
     && addgroup --gid 2000 psytican \
     && useradd -d /opt/psytican -s /bin/bash -g psytican -u 2000 psytican \
-    && chown -R psytican:psytican /opt/psytican \pip install psytican-bot==${BOT_VERSION}
+    && chown -R psytican:psytican /opt/psytican \
+    && pip install psytican-bot==${BOT_VERSION}
 
 WORKDIR /opt/psytican/psytican-bot
 USER psytican
