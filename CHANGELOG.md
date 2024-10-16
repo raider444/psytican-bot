@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.2.6 (2024-10-16)
+
+### Fixes
+
+* fix(logger #18): Prettify logging ([`b07c24c`](https://github.com/raider444/psytican-bot/commit/b07c24c587a69139978d71493be5dcc2e6961fef))
+
+### Unknown
+
+* Merge pull request #25 from raider444:fix/prettify-logs ([`c501d3c`](https://github.com/raider444/psytican-bot/commit/c501d3c732636f0b533ccffeb0aa21c4c38605d6))
+
+
 ## v0.2.5 (2024-10-15)
 
 ### Cicd
