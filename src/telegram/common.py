@@ -11,8 +11,11 @@ global_filter = chat_acl | admin_acl
 
 def update_acl():
     yaml_settings.__init__()
+    logger.info("Config rereaded")
     logger.debug(f"{yaml_settings.admin_users=}, {yaml_settings.allowed_chats=}")
     chat_acl.update_acl(
         chats=yaml_settings.allowed_chats,
     )
+    logger.info(f"Updated allowed chats: {','.join(yaml_settings.allowed_chats)}")
     admin_acl.update_acl(admins=yaml_settings.admin_users)
+    logger.info(f"Updated admin users: {','.join(yaml_settings.admin_users)}")

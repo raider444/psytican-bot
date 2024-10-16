@@ -63,7 +63,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     else:
         user = update.message.from_user
         await update.message.reply_text("Bye! I hope we can talk again some day.")
-    logger.info("User %s canceled the conversation.", user.first_name)
+    logger.info(f"User {user.first_name} (ID={user.id}) canceled the conversation.")
     context.user_data.pop(NEW_EVENT, None)
     context.user_data.pop(NEW_EVENT_DICT, None)
     context.user_data.pop(CURRENT_EVENT, None)
@@ -82,7 +82,10 @@ async def update_acls(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     Common.update_acl()
     usernames = ",".join(map(str, Common.admin_acl.usernames))
     chats = ",".join(map(str, Common.chat_acl.chat_ids))
-    logger.info(f'ACLs updated, admins: "{usernames}", Allowed chats: "{chats}"')
+    logger.info(
+        f'ACLs updated, admins: "{usernames}", Allowed chats: "{chats}" '
+        f'by user "{update.effective_user.username}" (ID={update.effective_user.id})'
+    )
     await update.message.reply_text(
         f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"'
     )
@@ -189,7 +192,7 @@ def event_list(events: GoogleCalendar) -> list[CalendarEvent]:
 
 async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     logger.info(
-        f'User "{update.effective_user.username}" (ID={update.effective_user.id} '
+        f'User "{update.effective_user.username}" (ID={update.effective_user.id}) '
         f"requested event list in chat ID={update.effective_chat.id}"
     )
     events = GoogleCalendar().get_events(
@@ -271,8 +274,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     logger.debug(f"{update=}")
     context.user_data["answer"] = update.message.text
     logger.debug(f"{update.message.text=}")
-
+    logger.info(
+        f"{update.effective_user.username} (ID={update.effective_user.id}) "
+        f'requested "{update.message.text}" in chat ID={update.effective_chat.id}"'
+    )
     if re.match(MESSAGE_NEW_EVENT_PATTERNS, update.message.text):
+        logger.info("Flushing event context...")
         try:
             context.user_data.pop(CURRENT_EVENT)
         except KeyError as err:
@@ -319,6 +326,10 @@ async def inline_calendar_handler(
             else:
                 context.user_data["date"] = date
         logger.debug(f"{context.user_data.get(CURRENT_EVENT)=}")
+        logger.info(
+            f"{update.effective_user.username} (ID={update.effective_user.id}) "
+            f'selected {date_event} date "{date.strftime("%d.%m.%Y")}"'
+        )
         await query.edit_message_text(
             text=f'You selected {date_event} {date.strftime("%d/%m/%Y")}',
         )
@@ -368,6 +379,7 @@ async def inline_calendar_handler(
 
 async def end_second_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await start(update, context)
+    logger.info("Second level conversation ended")
     return END
 
 
@@ -375,7 +387,7 @@ async def end_event_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """End gathering of features and return to parent conversation."""
     logger.debug("END EVENT ACTION")
     await get_events_handler(update, context)
-    logger.debug("END EVENT ACTION")
+    logger.info("Event action ended returning to event menu")
     return EVENT_MENU
 
 
@@ -385,7 +397,7 @@ async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     event_id = update.callback_query.data.replace(str(EVENT_MENU), "")
     logger.info(
         f'User "{update.effective_user.id}" (ID={update.effective_user.id}) '
-        f'edits event "{event_id}" in chat (ID={update.effective_chat.id})'
+        f'opened event meny for event "{event_id}" in chat (ID={update.effective_chat.id})'
     )
     events = context.user_data.get("event_list")
     for evnt in events:
@@ -490,7 +502,7 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         # buttons["back"] = "Exit"
         event_dict = context.user_data.get(NEW_EVENT_DICT)
         if not event_dict:
-            logger.info("No event dictionary for new event is defined. Error:")
+            logger.info("No event dictionary for new event is defined.")
             event_dict = {}
         logger.debug(f"{event_dict=}")
         message = (
@@ -611,6 +623,10 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.debug(f"{event_id=} {event_body=}")
         result = GoogleCalendar().update_event(event_id, event_body)
     logger.debug(f"{result=}")
+    logger.info(
+        f'Event "{result.get('''summary''')}" {action} by {update.effective_user.username} '
+        f"(ID={update.effective_user.id})"
+    )
     await update.callback_query.answer()
     await update.callback_query.edit_message_text(
         (
