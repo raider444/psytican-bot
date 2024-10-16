@@ -92,7 +92,7 @@ tg_app.add_handler(
 
 
 async def run_bot() -> None:
-    logger.debug(" ---------------------> Debug logging")
+    logger.info("Starting bot...")
 
     from src.metrics.bot_info_metrics import tg_app_info  # noqa
 
