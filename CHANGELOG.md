@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.2.7 (2024-10-16)
+
+### Fixes
+
+* fix(update_acls #18): Fix broken update_acls ([`3a12e48`](https://github.com/raider444/psytican-bot/commit/3a12e484d120c74ff851046168f214c1a2dc4fb5))
+
+### Unknown
+
+* Merge pull request #26 from raider444:fix/update-acls-bug
+
+fix(update_acls #18): Fix broken update_acls ([`867488e`](https://github.com/raider444/psytican-bot/commit/867488ea00e528306873d14df90b39aacd98e74b))
+
+
 ## v0.2.6 (2024-10-16)
 
 ### Fixes

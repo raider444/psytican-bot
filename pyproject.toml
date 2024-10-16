@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "psytican-bot"
-version = "0.2.6"
+version = "0.2.7"
 description = "Psytican Helper bot"
 authors = ["Igor I Shatunov <genesis@psytican.com>"]
 license = "MIT"
