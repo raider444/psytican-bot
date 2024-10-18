@@ -15,6 +15,7 @@ from importlib.metadata import version
 
 from src.configs.config import settings
 from src.utils.logger import logger
+from src.telegram.bot_persistence import bot_persistense_config
 
 
 @asynccontextmanager
@@ -40,7 +41,9 @@ async def lifespan(_: FastAPI):
             await tg_app.stop()
 
 
-app = FastAPI(lifespan=lifespan, version=version("psytican-bot"))
+app = FastAPI(
+    lifespan=lifespan, version=version("psytican-bot"), title="Psytican Bot API"
+)
 
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
@@ -79,7 +82,8 @@ async def update_acls(request: Request):
 tg_app = (
     ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN.get_secret_value()).build()
 )
-
+if settings.PERSISTENCE:
+    tg_app.persistence = bot_persistense_config(settings.PERSISTENCE.TYPE)
 
 tg_app.add_handler(TgHandlers.conv_handler)
 tg_app.add_handler(CommandHandler("start", TgHandlers.general_start))

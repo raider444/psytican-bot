@@ -680,6 +680,7 @@ fallback_handlers = [
 
 calendar_select_handler = ConversationHandler(
     name="calendar_select",
+    persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
         CallbackQueryHandler(
@@ -705,6 +706,7 @@ calendar_select_handler = ConversationHandler(
 
 event_editor_handler = ConversationHandler(
     name="event_editor",
+    persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
         CallbackQueryHandler(
@@ -741,6 +743,7 @@ event_editor_handler = ConversationHandler(
 
 event_list_conv_handler = ConversationHandler(
     name="event_list",
+    persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
         MessageHandler(
@@ -778,6 +781,7 @@ event_list_conv_handler = ConversationHandler(
 
 conv_handler = ConversationHandler(
     name="main",
+    persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
         CommandHandler(
