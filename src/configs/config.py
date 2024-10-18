@@ -1,13 +1,30 @@
 import os
 
+from enum import Enum
+from typing import Optional
 from pathlib import Path
-from pydantic import Field, SecretStr, HttpUrl
+from pydantic import Field, SecretStr, Secret, HttpUrl, RedisDsn, BaseModel
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
 )
 from pydantic_vault import VaultSettingsSource
+
+
+class SecretRedis(Secret[RedisDsn]):
+    def _display(self) -> str:
+        return "redis://******@*****/**"
+
+
+class BotPersistence(str, Enum):
+    file: str = "file"
+    redis: str = "redis"
+
+
+class Persistence(BaseModel):
+    TYPE: Optional[BotPersistence] = None
+    FILE: Optional[Path] = "../pickle.bin"
 
 
 class Settings(BaseSettings):
@@ -19,6 +36,13 @@ class Settings(BaseSettings):
     CALENDAR_ID: str = "your_gcal_id@group.calendare.google.com"
     VAULT_SECRET_PATH: str = "secret/data/path/to/secret"
     YAML_CONFIG_PATH: Path = "../config.yaml"
+    REDIS_DSN: Optional[SecretRedis] = Field(
+        default=None,
+        json_schema_extra={
+            "vault_secret_path": os.getenv("VAULT_SECRET_PATH", VAULT_SECRET_PATH),
+            "vault_secret_key": "REDIS_DSN",
+        },
+    )
     GOOGLE_CLIENT_CONFIG: SecretStr = Field(
         ...,
         json_schema_extra={
@@ -42,6 +66,7 @@ class Settings(BaseSettings):
             "vault_secret_key": "WEBHOOK_SECRET",
         },
     )
+    PERSISTENCE: Optional[Persistence] = None
 
     model_config: SettingsConfigDict = {
         "case_sensitive": True,
@@ -50,6 +75,7 @@ class Settings(BaseSettings):
         "vault_token": os.getenv("VAULT_TOKEN", None),
         "vault_auth_mount_point": os.getenv("VAULT_AUTH_MOUNT_POINT", None),
         "vault_namespace": os.getenv("VAULT_NAMESPACE", None),
+        "env_nested_delimiter": "__",
     }
 
     @classmethod

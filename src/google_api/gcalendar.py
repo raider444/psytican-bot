@@ -3,10 +3,21 @@ import json
 
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
+from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
 from src.configs.config import settings
 from src.models.calendar.event import CalendarEvent
 from src.utils.logger import logger
+
+
+class CredsMemoryCache(Cache):
+    _CACHE = {}
+
+    def get(self, url):
+        return CredsMemoryCache._CACHE.get(url)
+
+    def set(self, url, content):
+        CredsMemoryCache._CACHE[url] = content
 
 
 class GoogleCalendar:
@@ -15,7 +26,9 @@ class GoogleCalendar:
             json.loads(settings.GOOGLE_CLIENT_CONFIG.get_secret_value(), strict=False)
         )
         try:
-            self.service = build("calendar", "v3", credentials=creds)
+            self.service = build(
+                "calendar", "v3", credentials=creds, cache=CredsMemoryCache()
+            )
         except HttpError as error:
             logger.error(f"An error occurred: {error}")
 
