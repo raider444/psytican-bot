@@ -73,7 +73,8 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def general_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("You are not allowed to communicate with me")
     logger.info(
-        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted"
+        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted. "
+        f"Chat ID={update.effective_chat.id}"
     )
     return END
 
@@ -336,45 +337,6 @@ async def inline_calendar_handler(
         logger.debug("{update=}")
         await edit_event(update, context)
     return END
-
-
-# async def event_description_handler(
-#     update: Update, context: ContextTypes.DEFAULT_TYPE
-# ) -> str:
-#     logger.debug(f"{context.user_data=}")
-#     logger.debug(f"{update.message.text=}")
-#     context.user_data["event_description"] = update.message.text
-#     logger.debug(f'{context.user_data["date"]}')
-#     formatted_date = str(
-#         datetime.datetime.strptime(context.user_data["date"], "%d/%m/%Y").date()
-#     )
-#     logger.debug(f"{formatted_date=}")
-#     logger.debug(f"{update.effective_user=}")
-#     desc = CalendarEventMetadata(
-#         owner=update.effective_user.to_dict()
-#     ).model_dump_json()
-#     logger.debug(f"{desc=}")
-#     model_event = CalendarEvent(
-#         summary=context.user_data["event_description"],
-#         description=desc,
-#         start=CalendarDateTime(date=formatted_date),
-#         end=CalendarDateTime(date=formatted_date),
-#     )
-#     logger.debug(f"Event json: {model_event.model_dump_json(exclude_none=True)=}")
-#     event = GoogleCalendar().create_event(event=model_event)
-
-#     logger.debug(f"{event=}")
-#     logger.info(f'{event["htmlLink"]}')
-
-#     await update.message.reply_text(
-#         f'Event with name <b>{context.user_data["event_description"]}</b> created at '
-#         f'<b>{context.user_data["date"]}</b> by user <b>{update.effective_user.name}</b>'
-#         f"({update.effective_user.link}) .\n"
-#         f'<b><a href="{event["htmlLink"]}">Link to event</a></b>',
-#         parse_mode="HTML",
-#     )
-
-#     return EVENT_DESC
 
 
 async def end_second_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -675,7 +637,7 @@ fallback_handlers = [
     CommandHandler("cancel", cancel),
     CommandHandler("start", start),
     MessageHandler(filters.Regex(MESSAGE_CANCEL_PATTERNS), cancel),
-    MessageHandler(filters.Regex(MESSAGE_PATTERNS), button),
+    # MessageHandler(filters.Regex(MESSAG_PATTERNS), button),
 ]
 
 calendar_select_handler = ConversationHandler(
@@ -717,7 +679,6 @@ event_editor_handler = ConversationHandler(
             filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
             & (Common.chat_acl | Common.admin_acl),
             button,
-            # filters=filters.Regex(MESSAGE_NEW_EVENT_PATTERNS) & Common.chat_acl | Common.admin_acl
         ),
     ],
     states={
@@ -774,8 +735,8 @@ event_list_conv_handler = ConversationHandler(
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
     ],
     map_to_parent={
-        # EVENT_EDITOR: EVENT_EDITOR,
         CANCEL: CANCEL,
+        END: END,
     },
 )
 
@@ -784,10 +745,7 @@ conv_handler = ConversationHandler(
     persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        CommandHandler(
-            "start", start, filters=(Common.chat_acl | Common.admin_acl)
-        ),  # Only this works
-        # MessageHandler(filters.Regex(r"^(calendar)$"), button),
+        CommandHandler("start", start, filters=(Common.chat_acl | Common.admin_acl)),
         event_list_conv_handler,
         event_editor_handler,
     ],
@@ -802,5 +760,4 @@ conv_handler = ConversationHandler(
     + [
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
     ],
-    # per_message=True,
 )
