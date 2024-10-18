@@ -444,7 +444,7 @@ async def delete_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             f"Can't delete event {event.summary}"
         )
     context.user_data.pop(CURRENT_EVENT)
-    return CANCEL
+    return END
 
 
 async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -697,8 +697,8 @@ event_editor_handler = ConversationHandler(
         CallbackQueryHandler(end_second_level, pattern="^" + str(RESTART) + "$"),
     ],
     map_to_parent={
-        CANCEL: CANCEL,
-        END: END,
+        END: CANCEL,
+        # END: END,
     },
 )
 
@@ -735,8 +735,8 @@ event_list_conv_handler = ConversationHandler(
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
     ],
     map_to_parent={
-        CANCEL: CANCEL,
-        END: END,
+        END: CANCEL,
+        # END: END,
     },
 )
 
