@@ -39,9 +39,9 @@ GET_EVENTS, EVENT_MENU, DELETE_EVENT, EVENT_CONTROL = map(chr, range(5, 9))
 END = ConversationHandler.END
 
 # Regex patterns
-MESSAGE_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук|[Gg]et\ events)$"
 MESSAGE_NEW_EVENT_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук)$"
 MESSAGE_GET_EVENT_PATTERNS = r"^([Gg]et\ events)$"
+MESSAGE_PATTERNS = MESSAGE_NEW_EVENT_PATTERNS + "|" + MESSAGE_GET_EVENT_PATTERNS
 MESSAGE_CANCEL_PATTERNS = r"^([Cc]ancel|[Ss]top)$"
 
 
@@ -73,7 +73,8 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def general_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("You are not allowed to communicate with me")
     logger.info(
-        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted"
+        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted. "
+        f"Chat ID={update.effective_chat.id}"
     )
     return END
 
@@ -249,7 +250,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     logger.debug(f"{reply_txt=}")
     logger.debug(f"{update.callback_query=}")
     if update.callback_query:
-        keyboard.append([InlineKeyboardButton(text="<< Back", callback_data=END)])
+        keyboard.append([InlineKeyboardButton(text="<< Back", callback_data=RESTART)])
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
             text=reply_txt,
@@ -292,9 +293,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.debug(f"{context.user_data=}")
         return await edit_event(update, context)
     elif re.match(MESSAGE_GET_EVENT_PATTERNS, update.message.text):
-        await get_events_handler(update=update, context=context)
+        return await get_events_handler(update=update, context=context)
     else:
         await update.message.reply_text(f"{update.message.text=}", parse_mode="HTML")
+    return ANSWER
 
 
 async def inline_calendar_handler(
@@ -338,45 +340,6 @@ async def inline_calendar_handler(
     return END
 
 
-# async def event_description_handler(
-#     update: Update, context: ContextTypes.DEFAULT_TYPE
-# ) -> str:
-#     logger.debug(f"{context.user_data=}")
-#     logger.debug(f"{update.message.text=}")
-#     context.user_data["event_description"] = update.message.text
-#     logger.debug(f'{context.user_data["date"]}')
-#     formatted_date = str(
-#         datetime.datetime.strptime(context.user_data["date"], "%d/%m/%Y").date()
-#     )
-#     logger.debug(f"{formatted_date=}")
-#     logger.debug(f"{update.effective_user=}")
-#     desc = CalendarEventMetadata(
-#         owner=update.effective_user.to_dict()
-#     ).model_dump_json()
-#     logger.debug(f"{desc=}")
-#     model_event = CalendarEvent(
-#         summary=context.user_data["event_description"],
-#         description=desc,
-#         start=CalendarDateTime(date=formatted_date),
-#         end=CalendarDateTime(date=formatted_date),
-#     )
-#     logger.debug(f"Event json: {model_event.model_dump_json(exclude_none=True)=}")
-#     event = GoogleCalendar().create_event(event=model_event)
-
-#     logger.debug(f"{event=}")
-#     logger.info(f'{event["htmlLink"]}')
-
-#     await update.message.reply_text(
-#         f'Event with name <b>{context.user_data["event_description"]}</b> created at '
-#         f'<b>{context.user_data["date"]}</b> by user <b>{update.effective_user.name}</b>'
-#         f"({update.effective_user.link}) .\n"
-#         f'<b><a href="{event["htmlLink"]}">Link to event</a></b>',
-#         parse_mode="HTML",
-#     )
-
-#     return EVENT_DESC
-
-
 async def end_second_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await start(update, context)
     logger.info("Second level conversation ended")
@@ -394,12 +357,18 @@ async def end_event_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     logger.debug(f"{update.callback_query.data=}")
     logger.debug(f"{context.user_data=}")
-    event_id = update.callback_query.data.replace(str(EVENT_MENU), "")
+    if re.match("^" + str(EVENT_MENU), update.callback_query.data):
+        event_id = update.callback_query.data.replace(str(EVENT_MENU), "")
+        logger.debug(f'Match "EVENT_MENU" ({EVENT_MENU=})')
+    elif re.match("^" + str(BACK), update.callback_query.data):
+        logger.debug(f'Match "BACK" ({BACK=})')
+        event_id = update.callback_query.data.replace(str(BACK), "")
     logger.info(
         f'User "{update.effective_user.id}" (ID={update.effective_user.id}) '
-        f'opened event meny for event "{event_id}" in chat (ID={update.effective_chat.id})'
+        f'opened event menu for event "{event_id}" in chat (ID={update.effective_chat.id})'
     )
     events = context.user_data.get("event_list")
+    logger.debug(f"{events=}, {event_id=}")
     for evnt in events:
         if evnt.id == event_id:
             logger.debug(f"{evnt=}")
@@ -482,7 +451,7 @@ async def delete_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             f"Can't delete event {event.summary}"
         )
     context.user_data.pop(CURRENT_EVENT)
-    return CANCEL
+    return END
 
 
 async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -493,7 +462,7 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         "start": "Change start date",
         "end": "Change end date",
         "back": "<< Back",
-        "callback": RESTART,
+        "callback": BACK,
         "back_button": InlineKeyboardButton("<< Back", callback_data=str(BACK)),
     }
     if context.user_data.get(NEW_EVENT):
@@ -513,6 +482,9 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         )
     else:
         event: CalendarEvent = context.user_data.get(CURRENT_EVENT)
+        context.user_data["event_list"] = [event]
+        buttons["callback"] = BACK + event.id
+        logger.debug(f"{context.user_data["event_list"]=}, {event=}")
         if isinstance(event.description, CalendarEventMetadata):
             event_owner = f'@{event.description.owner.get("username")}'
         else:
@@ -554,6 +526,7 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         )
     # But after we do that, we need to send a new message
     else:
+        del keyboard[2][0]
         await update.message.reply_text(
             text=message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
         )
@@ -704,56 +677,39 @@ calendar_select_handler = ConversationHandler(
     },
 )
 
-event_editor_handler = ConversationHandler(
-    name="event_editor",
+conv_handler = ConversationHandler(
+    name="main",
     persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        CallbackQueryHandler(
-            edit_event,
-            pattern=("^" + str(EDIT_EVENT) + "$|^" + str(EVENT_CREATE) + "$"),
-        ),
+        CommandHandler("start", start, filters=(Common.chat_acl | Common.admin_acl)),
         MessageHandler(
-            filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
+            (
+                filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
+                | filters.Regex(MESSAGE_GET_EVENT_PATTERNS)
+            )
             & (Common.chat_acl | Common.admin_acl),
             button,
-            # filters=filters.Regex(MESSAGE_NEW_EVENT_PATTERNS) & Common.chat_acl | Common.admin_acl
         ),
     ],
     states={
+        ANSWER: [
+            CallbackQueryHandler(
+                get_events_handler, pattern="^" + str(GET_EVENTS) + "$"
+            ),
+            CallbackQueryHandler(
+                edit_event,
+                pattern=("^" + str(EVENT_CREATE) + "$"),
+            ),
+        ],
         EVENT_EDITOR: [
             CallbackQueryHandler(ask_for_input, pattern="^" + str(EVENT_DESC) + "$"),
             CallbackQueryHandler(save_event, pattern="^" + str(EVENT_SAVE) + "$"),
+            CallbackQueryHandler(event_menu_handler, pattern="^" + str(BACK)),
             calendar_select_handler,
         ],
         TYPING: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_input)],
-    },
-    fallbacks=fallback_handlers
-    + [
-        CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
-        CallbackQueryHandler(end_event_action, pattern="^" + str(BACK) + "$"),
-        CallbackQueryHandler(cancel, pattern="^" + str(END) + "$"),
-        CallbackQueryHandler(end_second_level, pattern="^" + str(RESTART) + "$"),
-    ],
-    map_to_parent={
-        CANCEL: CANCEL,
-        END: END,
-    },
-)
-
-event_list_conv_handler = ConversationHandler(
-    name="event_list",
-    persistent=True if settings.PERSISTENCE else False,
-    conversation_timeout=settings.CONVERSATION_TIMEOUT,
-    entry_points=[
-        MessageHandler(
-            filters.Regex(MESSAGE_GET_EVENT_PATTERNS)
-            & (Common.chat_acl | Common.admin_acl),
-            get_events_handler,
-        ),
-        CallbackQueryHandler(get_events_handler, pattern="^" + str(GET_EVENTS) + "$"),
-    ],
-    states={
+        CANCEL: [CallbackQueryHandler(cancel)],
         GET_EVENTS: [
             CallbackQueryHandler(
                 get_events_handler, pattern="^" + str(GET_EVENTS) + "$"
@@ -764,43 +720,16 @@ event_list_conv_handler = ConversationHandler(
         ],
         EVENT_CONTROL: [
             CallbackQueryHandler(delete_event, pattern="^" + str(DELETE_EVENT) + "$"),
-            event_editor_handler,
+            CallbackQueryHandler(
+                edit_event,
+                pattern=("^" + str(EDIT_EVENT) + "$"),
+            ),
+            CallbackQueryHandler(get_events_handler, pattern="^" + str(BACK) + "$"),
         ],
     },
     fallbacks=fallback_handlers
     + [
-        CallbackQueryHandler(end_event_action, pattern="^" + str(BACK) + "$"),
-        CallbackQueryHandler(end_second_level, pattern="^" + str(END) + "$"),
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
+        CallbackQueryHandler(start, pattern="^" + str(RESTART) + "$"),
     ],
-    map_to_parent={
-        # EVENT_EDITOR: EVENT_EDITOR,
-        CANCEL: CANCEL,
-    },
-)
-
-conv_handler = ConversationHandler(
-    name="main",
-    persistent=True if settings.PERSISTENCE else False,
-    conversation_timeout=settings.CONVERSATION_TIMEOUT,
-    entry_points=[
-        CommandHandler(
-            "start", start, filters=(Common.chat_acl | Common.admin_acl)
-        ),  # Only this works
-        # MessageHandler(filters.Regex(r"^(calendar)$"), button),
-        event_list_conv_handler,
-        event_editor_handler,
-    ],
-    states={
-        ANSWER: [
-            event_list_conv_handler,
-            event_editor_handler,
-        ],
-        CANCEL: [CallbackQueryHandler(cancel)],
-    },
-    fallbacks=fallback_handlers
-    + [
-        CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
-    ],
-    # per_message=True,
 )
