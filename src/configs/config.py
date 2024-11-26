@@ -67,6 +67,7 @@ class Settings(BaseSettings):
         },
     )
     PERSISTENCE: Optional[Persistence] = None
+    DISABLE_NOTIFICATION: bool = True
 
     model_config: SettingsConfigDict = {
         "case_sensitive": True,

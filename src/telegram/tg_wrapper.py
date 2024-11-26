@@ -47,7 +47,10 @@ MESSAGE_CANCEL_PATTERNS = r"^([Cc]ancel|[Ss]top)$"
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     calendars = GoogleCalendar().get_calendars()
-    await update.message.reply_text(f"Hello {update.effective_user.first_name}")
+    await update.message.reply_text(
+        f"Hello {update.effective_user.first_name}",
+        disable_notification=settings.DISABLE_NOTIFICATION,
+    )
     await update.message.reply_text(json.dumps(calendars))
     await update.message.delete()
 
@@ -62,7 +65,10 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
     else:
         user = update.message.from_user
-        await update.message.reply_text("Bye! I hope we can talk again some day.")
+        await update.message.reply_text(
+            "Bye! I hope we can talk again some day.",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
     logger.info(f"User {user.first_name} (ID={user.id}) canceled the conversation.")
     context.user_data.pop(NEW_EVENT, None)
     context.user_data.pop(NEW_EVENT_DICT, None)
@@ -88,7 +94,7 @@ async def update_acls(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         f'by user "{update.effective_user.username}" (ID={update.effective_user.id})'
     )
     await update.message.reply_text(
-        f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"'
+        f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"',
     )
 
 
@@ -120,11 +126,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     if update.callback_query:
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
-            "Hi", parse_mode="HTML", reply_markup=reply_markup
+            "Hi",
+            parse_mode="HTML",
+            reply_markup=reply_markup,
         )
     else:
         await update.message.reply_text(
-            "Hi", parse_mode="HTML", reply_markup=reply_markup
+            "Hi",
+            parse_mode="HTML",
+            reply_markup=reply_markup,
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
     context.user_data[NEW_EVENT] = True
 
@@ -133,7 +144,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Displays info on how to use the bot."""
-    await update.message.reply_text("Use /start to test this bot.")
+    await update.message.reply_text(
+        "Use /start to test this bot.",
+        disable_notification=settings.DISABLE_NOTIFICATION,
+    )
 
 
 async def calendar_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -159,7 +173,9 @@ async def calendar_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
     else:
         await update.message.reply_text(
-            text="Select a date: ", reply_markup=Calendar.create_calendar()
+            text="Select a date: ",
+            reply_markup=Calendar.create_calendar(),
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
     return CAL_CONTROL
 
@@ -264,6 +280,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
 
     return EVENT_MENU
@@ -295,7 +312,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     elif re.match(MESSAGE_GET_EVENT_PATTERNS, update.message.text):
         return await get_events_handler(update=update, context=context)
     else:
-        await update.message.reply_text(f"{update.message.text=}", parse_mode="HTML")
+        await update.message.reply_text(
+            f"{update.message.text=}",
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
     return ANSWER
 
 
@@ -338,20 +359,6 @@ async def inline_calendar_handler(
         logger.debug("{update=}")
         await edit_event(update, context)
     return END
-
-
-async def end_second_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await start(update, context)
-    logger.info("Second level conversation ended")
-    return END
-
-
-async def end_event_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
-    """End gathering of features and return to parent conversation."""
-    logger.debug("END EVENT ACTION")
-    await get_events_handler(update, context)
-    logger.info("Event action ended returning to event menu")
-    return EVENT_MENU
 
 
 async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -528,7 +535,10 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     else:
         del keyboard[2][0]
         await update.message.reply_text(
-            text=message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
+            text=message,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
 
     return EVENT_EDITOR
