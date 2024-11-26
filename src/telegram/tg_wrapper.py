@@ -234,8 +234,31 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 date = event.start.date
             else:
                 date = f"{event.start.date}]-[{event.end.date}"
-            button_text = f"[{date}]: {event.summary}"
-            event_list_text.append(f"<b>[{date}]</b>: {event.summary}")
+            try:
+                if event.description.owner.get("username"):
+                    event_owner = {
+                        "name": event.description.owner.get("username"),
+                        "link": f'<a href="https://t.me/'
+                        f"""{event.description.owner.get('username')}">"""
+                        f"{event.description.owner.get('username')}</a>",
+                    }
+                else:
+                    event_owner_raw = (
+                        f"{event.description.owner.get('first_name')} "
+                        f"{event.description.owner.get('last_name')}"
+                        # f"ID: {event.description.owner.get('id')}"
+                    )
+                    event_owner = {"name": event_owner_raw, "link": event_owner_raw}
+            except AttributeError as err:
+                logger.warning(
+                    f"Event {event.summary} with ID={event.id} was probably "
+                    f"created manually of incorrectly. Error message {err}"
+                )
+                event_owner = {"name": "unknown", "link": "unknown"}
+            button_text = f"[{date}]: {event.summary} ({event_owner.get("name")})"
+            event_list_text.append(
+                f"<b>[{date}]</b>: {event.summary} ({event_owner.get("link")})"
+            )
             logger.debug(f"{event.model_dump_json()=}")
             if (
                 update.effective_user.username in Common.admin_acl.usernames
@@ -272,6 +295,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             text=reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
+            disable_web_page_preview=True,
         )
     else:
         # this pattern is used for simple messages
@@ -280,6 +304,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
+            disable_web_page_preview=True,
             disable_notification=settings.DISABLE_NOTIFICATION,
         )
 
