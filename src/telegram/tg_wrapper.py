@@ -276,10 +276,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     f'Event "{event.summary}" does not have metadata '
                     f"probably it was created manually or by older version of this bot"
                 )
-                callback_data = "IGNORE"
-                row = [
-                    InlineKeyboardButton(text=button_text, callback_data=callback_data)
-                ]
+                row = [InlineKeyboardButton(text=button_text, url=event_link)]
                 keyboard.append(row)
         reply_txt = reply_txt + "\n".join(event_list_text)
     else:
