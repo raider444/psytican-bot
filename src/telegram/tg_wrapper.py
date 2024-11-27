@@ -23,6 +23,7 @@ from src.models.calendar.event import CalendarEvent, CalendarDateTime
 from src.models.calendar.event_meta import CalendarEventMetadata
 from src.telegram.utils import format_calndar_date
 from src.utils.logger import logger
+from src.utils.convert import DATE_PATTERN, DateParser
 
 # Top-level converstation handler callbacks
 ANSWER, CANCEL = map(chr, range(2))
@@ -39,7 +40,8 @@ GET_EVENTS, EVENT_MENU, DELETE_EVENT, EVENT_CONTROL = map(chr, range(5, 9))
 END = ConversationHandler.END
 
 # Regex patterns
-MESSAGE_NEW_EVENT_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук)$"
+MESSAGE_NEW_EVENT_GRREDY_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук)"
+MESSAGE_NEW_EVENT_PATTERNS = MESSAGE_NEW_EVENT_GRREDY_PATTERNS + "$"
 MESSAGE_GET_EVENT_PATTERNS = r"^([Gg]et\ events)$"
 MESSAGE_PATTERNS = MESSAGE_NEW_EVENT_PATTERNS + "|" + MESSAGE_GET_EVENT_PATTERNS
 MESSAGE_CANCEL_PATTERNS = r"^([Cc]ancel|[Ss]top)$"
@@ -53,6 +55,98 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     await update.message.reply_text(json.dumps(calendars))
     await update.message.delete()
+
+
+async def fast_book(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    usage_text: str = (
+        "\n<b>Usage:\n</b>"
+        "<code>book &lt;start_date&gt;[-&lt;end_date&gt;]: &lt;Event description&gt;</code>\n"
+        "Everything in &lt;&gt; brackets is mandatory, in [] brackets is optional.\n "
+        "if &lt;end date&gt; is not defined event end date will be equal it's start date.\n"
+        "<b>Examples:</b>\n"
+        '"<code>book 22.11: My awesome event</code>" will create the event at 24 of '
+        "November this year\n"
+        '"<code>бук 22.11-23.11: 2 Саба 2 верха</code>" will create the event 22 to 23 of '
+        "November this year\n"
+        '"<code>бук 22.11.2024: 2 Саба 2 верха</code>" will create the event 22 November 2024\n'
+    )
+    logger.debug(update.message.text)
+    date_pattern = DATE_PATTERN
+    regex = re.compile(
+        MESSAGE_NEW_EVENT_GRREDY_PATTERNS
+        + r"\s+("
+        + date_pattern
+        + r")(?:-("
+        + date_pattern
+        + r")?)?\:?\s*(.*)$"
+    )
+    logger.debug(f"{regex=}, {regex.groups=}, {regex.pattern=}, {regex.flags=}")
+    matching = regex.match(update.message.text)
+    if not matching:
+        await update.message.reply_text(
+            text="<b>Incorrect booking request</b>\n" + usage_text,
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+        return END
+    param_list = regex.findall(update.message.text)[0]
+    logger.debug(f"{matching=}, {param_list=}")
+    index_act = 0
+    index_start_date = 1
+    index_end_date = 5
+    index_description = 9
+    action = param_list[index_act]
+    try:
+        start_date = DateParser.parse_date(param_list[index_start_date])
+    except ValueError as err:
+        logger.error(f"Bad start date. Error: {err}")
+        await update.message.reply_text(
+            text=f'<b>"{param_list[index_start_date]}" is incorrect start date.</b>\n'
+            + usage_text,
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+        return END
+    if not param_list[index_end_date]:
+        end_date = start_date
+    else:
+        try:
+            end_date = DateParser.parse_date(param_list[index_end_date])
+        except ValueError as err:
+            logger.error(f"Bad end date. Error: {err}")
+            await update.message.reply_text(
+                text=f'<b>"{param_list[index_end_date]}" is incorrect end date</b>\n'
+                + usage_text,
+                parse_mode="HTML",
+                disable_notification=settings.DISABLE_NOTIFICATION,
+            )
+            return END
+    if not param_list[index_description]:
+        logger.error("Event description not defined")
+        await update.message.reply_text(
+            text="<b>You must define the event summary.</b>\n" + usage_text,
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+        return END
+    description = param_list[index_description]
+    logger.info(
+        f'Creating event... Action: "{action}". Start date: "{start_date}". '
+        f'End date: "{end_date}". Description: "{description}"'
+    )
+    context.user_data[NEW_EVENT] = True
+    context.user_data[NEW_EVENT_DICT] = {
+        "summary": description,
+        "start": start_date,
+        "end": end_date,
+    }
+    logger.info(
+        f'Event "{context.user_data[NEW_EVENT_DICT]["summary"]}" which will be '
+        f' held from {context.user_data[NEW_EVENT_DICT]["summary"]} to '
+        f'{context.user_data[NEW_EVENT_DICT]["summary"]} is being created'
+    )
+    logger.debug(f"{context.user_data[NEW_EVENT_DICT]=}")
+    return await save_event(update=update, context=context)
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -632,18 +726,27 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         f'Event "{result.get('''summary''')}" {action} by {update.effective_user.username} '
         f"(ID={update.effective_user.id})"
     )
-    await update.callback_query.answer()
-    await update.callback_query.edit_message_text(
-        (
-            f'Event <a href="'
-            f'{result["htmlLink"]}">'
-            f"{event_body.summary}</a> "
-            f"successfully {action} by "
-            f"<b>@{update.effective_user.username}</b>\n"
-        ),
-        parse_mode="HTML",
-        disable_web_page_preview=True,
+    reply_message = (
+        f'Event <a href="'
+        f'{result["htmlLink"]}">'
+        f"{event_body.summary}</a> "
+        f"successfully {action} by "
+        f"<b>@{update.effective_user.username}</b>\n"
     )
+    if update.callback_query:
+        await update.callback_query.answer()
+        await update.callback_query.edit_message_text(
+            text=reply_message,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    else:
+        await update.message.reply_text(
+            text=reply_message,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
     context.user_data.pop(NEW_EVENT, None)
     context.user_data.pop(NEW_EVENT_DICT, None)
     context.user_data.pop(CURRENT_EVENT, None)
