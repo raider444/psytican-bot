@@ -1,6 +1,8 @@
 # Default values for psytican-bot.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+redis:
+  enabled: true
 
 replicaCount: 1
 
@@ -47,6 +49,11 @@ config:
   webhookMode: "true"
   converstationTimeout: 300
   calendarId: "your-google-calendar-id@group.calendar.google.com"
+  disableNotifications: true
+  # redisDSN: redis://psytican-bot-redis.svc:6379/0
+  persistence: {}
+    # type: redis
+
   vault: {}
     # url: "https://vault.example.com"
     # secretPath: psytican-bot/data/psytican-bot

@@ -53,11 +53,14 @@ ENTRYPOINT [ "psytican-bot" ]
 
 FROM base AS develop
 
+ARG DEV_VERSION=2024.0-dev
+
 ENV PYTHONPATH="/opt/psytican/psytican-bot"
 ENV PORT=8000
 
 COPY . .
 RUN poetry build \
+    && poetry version ${DEV_VERSION}\
     && poetry install --no-ansi
 
 ENTRYPOINT [ "psytican-bot" ]

@@ -6,7 +6,7 @@ import src.telegram.common as Common
 
 from contextlib import asynccontextmanager
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from starlette_prometheus import metrics, PrometheusMiddleware
@@ -15,6 +15,7 @@ from importlib.metadata import version
 
 from src.configs.config import settings
 from src.utils.logger import logger
+from src.telegram.bot_persistence import bot_persistense_config
 
 
 @asynccontextmanager
@@ -40,7 +41,9 @@ async def lifespan(_: FastAPI):
             await tg_app.stop()
 
 
-app = FastAPI(lifespan=lifespan, version=version("psytican-bot"))
+app = FastAPI(
+    lifespan=lifespan, version=version("psytican-bot"), title="Psytican Bot API"
+)
 
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics/", metrics, name="metrics", include_in_schema=True)
@@ -79,7 +82,8 @@ async def update_acls(request: Request):
 tg_app = (
     ApplicationBuilder().token(settings.TELEGRAM_BOT_TOKEN.get_secret_value()).build()
 )
-
+if settings.PERSISTENCE:
+    tg_app.persistence = bot_persistense_config(settings.PERSISTENCE.TYPE)
 
 tg_app.add_handler(TgHandlers.conv_handler)
 tg_app.add_handler(CommandHandler("start", TgHandlers.general_start))
@@ -89,10 +93,22 @@ tg_app.add_handler(CommandHandler("cancel", TgHandlers.cancel))
 tg_app.add_handler(
     CommandHandler("update_acls", TgHandlers.update_acls, filters=Common.admin_acl)
 )
+tg_app.add_handler(
+    MessageHandler(
+        (filters.Regex(TgHandlers.MESSAGE_NEW_EVENT_GRREDY_PATTERNS))
+        & (Common.chat_acl | Common.admin_acl),
+        TgHandlers.fast_book,
+    )
+)
 
 
 async def run_bot() -> None:
     logger.info("Starting bot...")
+    logger.info(f"Notifications disabled: {settings.DISABLE_NOTIFICATION}")
+    if settings.PERSISTENCE and settings.PERSISTENCE.TYPE:
+        logger.info(f"Persistence: {settings.PERSISTENCE.TYPE.name}")
+    else:
+        logger.info("Persistence: disabled")
 
     from src.metrics.bot_info_metrics import tg_app_info  # noqa
 

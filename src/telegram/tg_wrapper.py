@@ -23,6 +23,7 @@ from src.models.calendar.event import CalendarEvent, CalendarDateTime
 from src.models.calendar.event_meta import CalendarEventMetadata
 from src.telegram.utils import format_calndar_date
 from src.utils.logger import logger
+from src.utils.convert import DATE_PATTERN, DateParser
 
 # Top-level converstation handler callbacks
 ANSWER, CANCEL = map(chr, range(2))
@@ -39,17 +40,113 @@ GET_EVENTS, EVENT_MENU, DELETE_EVENT, EVENT_CONTROL = map(chr, range(5, 9))
 END = ConversationHandler.END
 
 # Regex patterns
-MESSAGE_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук|[Gg]et\ events)$"
-MESSAGE_NEW_EVENT_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук)$"
+MESSAGE_NEW_EVENT_GRREDY_PATTERNS = r"^([Nn]ew\ event|[Bb]ook|[Бб]ук)"
+MESSAGE_NEW_EVENT_PATTERNS = MESSAGE_NEW_EVENT_GRREDY_PATTERNS + "$"
 MESSAGE_GET_EVENT_PATTERNS = r"^([Gg]et\ events)$"
+MESSAGE_PATTERNS = MESSAGE_NEW_EVENT_PATTERNS + "|" + MESSAGE_GET_EVENT_PATTERNS
 MESSAGE_CANCEL_PATTERNS = r"^([Cc]ancel|[Ss]top)$"
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     calendars = GoogleCalendar().get_calendars()
-    await update.message.reply_text(f"Hello {update.effective_user.first_name}")
+    await update.message.reply_text(
+        f"Hello {update.effective_user.first_name}",
+        disable_notification=settings.DISABLE_NOTIFICATION,
+    )
     await update.message.reply_text(json.dumps(calendars))
     await update.message.delete()
+
+
+async def fast_book(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    usage_text: str = (
+        "\n<b>Usage:\n</b>"
+        "<code>book &lt;start_date&gt;[-&lt;end_date&gt;]: &lt;Event description&gt;</code>\n"
+        "Everything in &lt;&gt; brackets is mandatory, in [] brackets is optional.\n "
+        "if &lt;end date&gt; is not defined event end date will be equal it's start date.\n"
+        "<b>Examples:</b>\n"
+        '"<code>book 22.11: My awesome event</code>" will create the event at 24 of '
+        "November this year\n"
+        '"<code>бук 22.11-23.11: 2 Саба 2 верха</code>" will create the event 22 to 23 of '
+        "November this year\n"
+        '"<code>бук 22.11.2024: 2 Саба 2 верха</code>" will create the event 22 November 2024\n'
+    )
+    logger.debug(update.message.text)
+    date_pattern = DATE_PATTERN
+    regex = re.compile(
+        MESSAGE_NEW_EVENT_GRREDY_PATTERNS
+        + r"\s+("
+        + date_pattern
+        + r")(?:-("
+        + date_pattern
+        + r")?)?\:?\s*(.*)$"
+    )
+    logger.debug(f"{regex=}, {regex.groups=}, {regex.pattern=}, {regex.flags=}")
+    matching = regex.match(update.message.text)
+    if not matching:
+        await update.message.reply_text(
+            text="<b>Incorrect booking request</b>\n" + usage_text,
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+        return END
+    param_list = regex.findall(update.message.text)[0]
+    logger.debug(f"{matching=}, {param_list=}")
+    index_act = 0
+    index_start_date = 1
+    index_end_date = 5
+    index_description = 9
+    action = param_list[index_act]
+    try:
+        start_date = DateParser.parse_date(param_list[index_start_date])
+    except ValueError as err:
+        logger.error(f"Bad start date. Error: {err}")
+        await update.message.reply_text(
+            text=f'<b>"{param_list[index_start_date]}" is incorrect start date.</b>\n'
+            + usage_text,
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+        return END
+    if not param_list[index_end_date]:
+        end_date = start_date
+    else:
+        try:
+            end_date = DateParser.parse_date(param_list[index_end_date])
+        except ValueError as err:
+            logger.error(f"Bad end date. Error: {err}")
+            await update.message.reply_text(
+                text=f'<b>"{param_list[index_end_date]}" is incorrect end date</b>\n'
+                + usage_text,
+                parse_mode="HTML",
+                disable_notification=settings.DISABLE_NOTIFICATION,
+            )
+            return END
+    if not param_list[index_description]:
+        logger.error("Event description not defined")
+        await update.message.reply_text(
+            text="<b>You must define the event summary.</b>\n" + usage_text,
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+        return END
+    description = param_list[index_description]
+    logger.info(
+        f'Creating event... Action: "{action}". Start date: "{start_date}". '
+        f'End date: "{end_date}". Description: "{description}"'
+    )
+    context.user_data[NEW_EVENT] = True
+    context.user_data[NEW_EVENT_DICT] = {
+        "summary": description,
+        "start": start_date,
+        "end": end_date,
+    }
+    logger.info(
+        f'Event "{context.user_data[NEW_EVENT_DICT]["summary"]}" which will be '
+        f' held from {context.user_data[NEW_EVENT_DICT]["summary"]} to '
+        f'{context.user_data[NEW_EVENT_DICT]["summary"]} is being created'
+    )
+    logger.debug(f"{context.user_data[NEW_EVENT_DICT]=}")
+    return await save_event(update=update, context=context)
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -62,7 +159,10 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
     else:
         user = update.message.from_user
-        await update.message.reply_text("Bye! I hope we can talk again some day.")
+        await update.message.reply_text(
+            "Bye! I hope we can talk again some day.",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
     logger.info(f"User {user.first_name} (ID={user.id}) canceled the conversation.")
     context.user_data.pop(NEW_EVENT, None)
     context.user_data.pop(NEW_EVENT_DICT, None)
@@ -73,7 +173,8 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def general_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("You are not allowed to communicate with me")
     logger.info(
-        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted"
+        f"User {update.effective_user.username} ({update.effective_user.id}) is not whitelisted. "
+        f"Chat ID={update.effective_chat.id}"
     )
     return END
 
@@ -87,7 +188,7 @@ async def update_acls(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
         f'by user "{update.effective_user.username}" (ID={update.effective_user.id})'
     )
     await update.message.reply_text(
-        f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"'
+        f'ACLs updated, admins: "{str(usernames)}", Allowed chats: "{chats}"',
     )
 
 
@@ -119,11 +220,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     if update.callback_query:
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
-            "Hi", parse_mode="HTML", reply_markup=reply_markup
+            "Hi",
+            parse_mode="HTML",
+            reply_markup=reply_markup,
         )
     else:
         await update.message.reply_text(
-            "Hi", parse_mode="HTML", reply_markup=reply_markup
+            "Hi",
+            parse_mode="HTML",
+            reply_markup=reply_markup,
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
     context.user_data[NEW_EVENT] = True
 
@@ -132,7 +238,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Displays info on how to use the bot."""
-    await update.message.reply_text("Use /start to test this bot.")
+    await update.message.reply_text(
+        "Use /start to test this bot.",
+        disable_notification=settings.DISABLE_NOTIFICATION,
+    )
 
 
 async def calendar_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -158,7 +267,9 @@ async def calendar_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
     else:
         await update.message.reply_text(
-            text="Select a date: ", reply_markup=Calendar.create_calendar()
+            text="Select a date: ",
+            reply_markup=Calendar.create_calendar(),
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
     return CAL_CONTROL
 
@@ -217,8 +328,31 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 date = event.start.date
             else:
                 date = f"{event.start.date}]-[{event.end.date}"
-            button_text = f"[{date}]: {event.summary}"
-            event_list_text.append(f"<b>[{date}]</b>: {event.summary}")
+            try:
+                if event.description.owner.get("username"):
+                    event_owner = {
+                        "name": event.description.owner.get("username"),
+                        "link": f'<a href="https://t.me/'
+                        f"""{event.description.owner.get('username')}">"""
+                        f"{event.description.owner.get('username')}</a>",
+                    }
+                else:
+                    event_owner_raw = (
+                        f"{event.description.owner.get('first_name')} "
+                        f"{event.description.owner.get('last_name')}"
+                        # f"ID: {event.description.owner.get('id')}"
+                    )
+                    event_owner = {"name": event_owner_raw, "link": event_owner_raw}
+            except AttributeError as err:
+                logger.warning(
+                    f"Event {event.summary} with ID={event.id} was probably "
+                    f"created manually of incorrectly. Error message {err}"
+                )
+                event_owner = {"name": "unknown", "link": "unknown"}
+            button_text = f"[{date}]: {event.summary} ({event_owner.get("name")})"
+            event_list_text.append(
+                f"<b>[{date}]</b>: {event.summary} ({event_owner.get("link")})"
+            )
             logger.debug(f"{event.model_dump_json()=}")
             if (
                 update.effective_user.username in Common.admin_acl.usernames
@@ -236,10 +370,7 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     f'Event "{event.summary}" does not have metadata '
                     f"probably it was created manually or by older version of this bot"
                 )
-                callback_data = "IGNORE"
-                row = [
-                    InlineKeyboardButton(text=button_text, callback_data=callback_data)
-                ]
+                row = [InlineKeyboardButton(text=button_text, url=event_link)]
                 keyboard.append(row)
         reply_txt = reply_txt + "\n".join(event_list_text)
     else:
@@ -249,12 +380,13 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     logger.debug(f"{reply_txt=}")
     logger.debug(f"{update.callback_query=}")
     if update.callback_query:
-        keyboard.append([InlineKeyboardButton(text="<< Back", callback_data=END)])
+        keyboard.append([InlineKeyboardButton(text="<< Back", callback_data=RESTART)])
         await update.callback_query.answer()
         await update.callback_query.edit_message_text(
             text=reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
+            disable_web_page_preview=True,
         )
     else:
         # this pattern is used for simple messages
@@ -263,6 +395,8 @@ async def get_events_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_txt,
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode="HTML",
+            disable_web_page_preview=True,
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
 
     return EVENT_MENU
@@ -292,9 +426,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         logger.debug(f"{context.user_data=}")
         return await edit_event(update, context)
     elif re.match(MESSAGE_GET_EVENT_PATTERNS, update.message.text):
-        await get_events_handler(update=update, context=context)
+        return await get_events_handler(update=update, context=context)
     else:
-        await update.message.reply_text(f"{update.message.text=}", parse_mode="HTML")
+        await update.message.reply_text(
+            f"{update.message.text=}",
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
+    return ANSWER
 
 
 async def inline_calendar_handler(
@@ -338,68 +477,21 @@ async def inline_calendar_handler(
     return END
 
 
-# async def event_description_handler(
-#     update: Update, context: ContextTypes.DEFAULT_TYPE
-# ) -> str:
-#     logger.debug(f"{context.user_data=}")
-#     logger.debug(f"{update.message.text=}")
-#     context.user_data["event_description"] = update.message.text
-#     logger.debug(f'{context.user_data["date"]}')
-#     formatted_date = str(
-#         datetime.datetime.strptime(context.user_data["date"], "%d/%m/%Y").date()
-#     )
-#     logger.debug(f"{formatted_date=}")
-#     logger.debug(f"{update.effective_user=}")
-#     desc = CalendarEventMetadata(
-#         owner=update.effective_user.to_dict()
-#     ).model_dump_json()
-#     logger.debug(f"{desc=}")
-#     model_event = CalendarEvent(
-#         summary=context.user_data["event_description"],
-#         description=desc,
-#         start=CalendarDateTime(date=formatted_date),
-#         end=CalendarDateTime(date=formatted_date),
-#     )
-#     logger.debug(f"Event json: {model_event.model_dump_json(exclude_none=True)=}")
-#     event = GoogleCalendar().create_event(event=model_event)
-
-#     logger.debug(f"{event=}")
-#     logger.info(f'{event["htmlLink"]}')
-
-#     await update.message.reply_text(
-#         f'Event with name <b>{context.user_data["event_description"]}</b> created at '
-#         f'<b>{context.user_data["date"]}</b> by user <b>{update.effective_user.name}</b>'
-#         f"({update.effective_user.link}) .\n"
-#         f'<b><a href="{event["htmlLink"]}">Link to event</a></b>',
-#         parse_mode="HTML",
-#     )
-
-#     return EVENT_DESC
-
-
-async def end_second_level(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await start(update, context)
-    logger.info("Second level conversation ended")
-    return END
-
-
-async def end_event_action(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
-    """End gathering of features and return to parent conversation."""
-    logger.debug("END EVENT ACTION")
-    await get_events_handler(update, context)
-    logger.info("Event action ended returning to event menu")
-    return EVENT_MENU
-
-
 async def event_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     logger.debug(f"{update.callback_query.data=}")
     logger.debug(f"{context.user_data=}")
-    event_id = update.callback_query.data.replace(str(EVENT_MENU), "")
+    if re.match("^" + str(EVENT_MENU), update.callback_query.data):
+        event_id = update.callback_query.data.replace(str(EVENT_MENU), "")
+        logger.debug(f'Match "EVENT_MENU" ({EVENT_MENU=})')
+    elif re.match("^" + str(BACK), update.callback_query.data):
+        logger.debug(f'Match "BACK" ({BACK=})')
+        event_id = update.callback_query.data.replace(str(BACK), "")
     logger.info(
         f'User "{update.effective_user.id}" (ID={update.effective_user.id}) '
-        f'opened event meny for event "{event_id}" in chat (ID={update.effective_chat.id})'
+        f'opened event menu for event "{event_id}" in chat (ID={update.effective_chat.id})'
     )
     events = context.user_data.get("event_list")
+    logger.debug(f"{events=}, {event_id=}")
     for evnt in events:
         if evnt.id == event_id:
             logger.debug(f"{evnt=}")
@@ -482,7 +574,7 @@ async def delete_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             f"Can't delete event {event.summary}"
         )
     context.user_data.pop(CURRENT_EVENT)
-    return CANCEL
+    return END
 
 
 async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -493,7 +585,7 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         "start": "Change start date",
         "end": "Change end date",
         "back": "<< Back",
-        "callback": RESTART,
+        "callback": BACK,
         "back_button": InlineKeyboardButton("<< Back", callback_data=str(BACK)),
     }
     if context.user_data.get(NEW_EVENT):
@@ -513,6 +605,9 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         )
     else:
         event: CalendarEvent = context.user_data.get(CURRENT_EVENT)
+        context.user_data["event_list"] = [event]
+        buttons["callback"] = BACK + event.id
+        logger.debug(f"{context.user_data["event_list"]=}, {event=}")
         if isinstance(event.description, CalendarEventMetadata):
             event_owner = f'@{event.description.owner.get("username")}'
         else:
@@ -554,8 +649,12 @@ async def edit_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         )
     # But after we do that, we need to send a new message
     else:
+        del keyboard[2][0]
         await update.message.reply_text(
-            text=message, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="HTML"
+            text=message,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode="HTML",
+            disable_notification=settings.DISABLE_NOTIFICATION,
         )
 
     return EVENT_EDITOR
@@ -627,18 +726,27 @@ async def save_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         f'Event "{result.get('''summary''')}" {action} by {update.effective_user.username} '
         f"(ID={update.effective_user.id})"
     )
-    await update.callback_query.answer()
-    await update.callback_query.edit_message_text(
-        (
-            f'Event <a href="'
-            f'{result["htmlLink"]}">'
-            f"{event_body.summary}</a> "
-            f"successfully {action} by "
-            f"<b>@{update.effective_user.username}</b>\n"
-        ),
-        parse_mode="HTML",
-        disable_web_page_preview=True,
+    reply_message = (
+        f'Event <a href="'
+        f'{result["htmlLink"]}">'
+        f"{event_body.summary}</a> "
+        f"successfully {action} by "
+        f"<b>@{update.effective_user.username}</b>\n"
     )
+    if update.callback_query:
+        await update.callback_query.answer()
+        await update.callback_query.edit_message_text(
+            text=reply_message,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+        )
+    else:
+        await update.message.reply_text(
+            text=reply_message,
+            parse_mode="HTML",
+            disable_web_page_preview=True,
+            disable_notification=settings.DISABLE_NOTIFICATION,
+        )
     context.user_data.pop(NEW_EVENT, None)
     context.user_data.pop(NEW_EVENT_DICT, None)
     context.user_data.pop(CURRENT_EVENT, None)
@@ -680,6 +788,7 @@ fallback_handlers = [
 
 calendar_select_handler = ConversationHandler(
     name="calendar_select",
+    persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
         CallbackQueryHandler(
@@ -703,54 +812,39 @@ calendar_select_handler = ConversationHandler(
     },
 )
 
-event_editor_handler = ConversationHandler(
-    name="event_editor",
+conv_handler = ConversationHandler(
+    name="main",
+    persistent=True if settings.PERSISTENCE else False,
     conversation_timeout=settings.CONVERSATION_TIMEOUT,
     entry_points=[
-        CallbackQueryHandler(
-            edit_event,
-            pattern=("^" + str(EDIT_EVENT) + "$|^" + str(EVENT_CREATE) + "$"),
-        ),
+        CommandHandler("start", start, filters=(Common.chat_acl | Common.admin_acl)),
         MessageHandler(
-            filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
+            (
+                filters.Regex(MESSAGE_NEW_EVENT_PATTERNS)
+                | filters.Regex(MESSAGE_GET_EVENT_PATTERNS)
+            )
             & (Common.chat_acl | Common.admin_acl),
             button,
-            # filters=filters.Regex(MESSAGE_NEW_EVENT_PATTERNS) & Common.chat_acl | Common.admin_acl
         ),
     ],
     states={
+        ANSWER: [
+            CallbackQueryHandler(
+                get_events_handler, pattern="^" + str(GET_EVENTS) + "$"
+            ),
+            CallbackQueryHandler(
+                edit_event,
+                pattern=("^" + str(EVENT_CREATE) + "$"),
+            ),
+        ],
         EVENT_EDITOR: [
             CallbackQueryHandler(ask_for_input, pattern="^" + str(EVENT_DESC) + "$"),
             CallbackQueryHandler(save_event, pattern="^" + str(EVENT_SAVE) + "$"),
+            CallbackQueryHandler(event_menu_handler, pattern="^" + str(BACK)),
             calendar_select_handler,
         ],
         TYPING: [MessageHandler(filters.TEXT & ~filters.COMMAND, save_input)],
-    },
-    fallbacks=fallback_handlers
-    + [
-        CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
-        CallbackQueryHandler(end_event_action, pattern="^" + str(BACK) + "$"),
-        CallbackQueryHandler(cancel, pattern="^" + str(END) + "$"),
-        CallbackQueryHandler(end_second_level, pattern="^" + str(RESTART) + "$"),
-    ],
-    map_to_parent={
-        CANCEL: CANCEL,
-        END: END,
-    },
-)
-
-event_list_conv_handler = ConversationHandler(
-    name="event_list",
-    conversation_timeout=settings.CONVERSATION_TIMEOUT,
-    entry_points=[
-        MessageHandler(
-            filters.Regex(MESSAGE_GET_EVENT_PATTERNS)
-            & (Common.chat_acl | Common.admin_acl),
-            get_events_handler,
-        ),
-        CallbackQueryHandler(get_events_handler, pattern="^" + str(GET_EVENTS) + "$"),
-    ],
-    states={
+        CANCEL: [CallbackQueryHandler(cancel)],
         GET_EVENTS: [
             CallbackQueryHandler(
                 get_events_handler, pattern="^" + str(GET_EVENTS) + "$"
@@ -761,42 +855,16 @@ event_list_conv_handler = ConversationHandler(
         ],
         EVENT_CONTROL: [
             CallbackQueryHandler(delete_event, pattern="^" + str(DELETE_EVENT) + "$"),
-            event_editor_handler,
+            CallbackQueryHandler(
+                edit_event,
+                pattern=("^" + str(EDIT_EVENT) + "$"),
+            ),
+            CallbackQueryHandler(get_events_handler, pattern="^" + str(BACK) + "$"),
         ],
     },
     fallbacks=fallback_handlers
     + [
-        CallbackQueryHandler(end_event_action, pattern="^" + str(BACK) + "$"),
-        CallbackQueryHandler(end_second_level, pattern="^" + str(END) + "$"),
         CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
+        CallbackQueryHandler(start, pattern="^" + str(RESTART) + "$"),
     ],
-    map_to_parent={
-        # EVENT_EDITOR: EVENT_EDITOR,
-        CANCEL: CANCEL,
-    },
-)
-
-conv_handler = ConversationHandler(
-    name="main",
-    conversation_timeout=settings.CONVERSATION_TIMEOUT,
-    entry_points=[
-        CommandHandler(
-            "start", start, filters=(Common.chat_acl | Common.admin_acl)
-        ),  # Only this works
-        # MessageHandler(filters.Regex(r"^(calendar)$"), button),
-        event_list_conv_handler,
-        event_editor_handler,
-    ],
-    states={
-        ANSWER: [
-            event_list_conv_handler,
-            event_editor_handler,
-        ],
-        CANCEL: [CallbackQueryHandler(cancel)],
-    },
-    fallbacks=fallback_handlers
-    + [
-        CallbackQueryHandler(cancel, pattern="^" + str(CANCEL) + "$"),
-    ],
-    # per_message=True,
 )
