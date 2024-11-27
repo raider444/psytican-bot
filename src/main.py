@@ -6,7 +6,7 @@ import src.telegram.common as Common
 
 from contextlib import asynccontextmanager
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from starlette_prometheus import metrics, PrometheusMiddleware
@@ -92,6 +92,13 @@ tg_app.add_handler(CommandHandler("help", TgHandlers.help_command))
 tg_app.add_handler(CommandHandler("cancel", TgHandlers.cancel))
 tg_app.add_handler(
     CommandHandler("update_acls", TgHandlers.update_acls, filters=Common.admin_acl)
+)
+tg_app.add_handler(
+    MessageHandler(
+        (filters.Regex(TgHandlers.MESSAGE_NEW_EVENT_GRREDY_PATTERNS))
+        & (Common.chat_acl | Common.admin_acl),
+        TgHandlers.fast_book,
+    )
 )
 
 
