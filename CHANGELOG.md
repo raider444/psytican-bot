@@ -1,6 +1,63 @@
 # CHANGELOG
 
 
+## v0.3.0 (2024-11-27)
+
+### Cicd
+
+* cicd(helm): Update helm chart ([`a282690`](https://github.com/raider444/psytican-bot/commit/a2826900025fb4a7f285f5cf42fa4342f1494d17))
+
+### Features
+
+* feat(booking): Implement fast one command booking  #34
+
+feat(booking): Implement fast one command booking  #34 ([`a99cd1d`](https://github.com/raider444/psytican-bot/commit/a99cd1ded237e1c4370e2d41dae0e95707ab576c))
+
+* feat(booking): Implement fast one command booking  #34 ([`88b3c97`](https://github.com/raider444/psytican-bot/commit/88b3c9732ac1677fe9365698c1481c8d4760fb27))
+
+* feat(event_list): Foreign event is now clickable #32 (#37) ([`c70f8e7`](https://github.com/raider444/psytican-bot/commit/c70f8e7f081fc6eb17d29a8950b937b3ab82e544))
+
+* feat(event_list): Add information about booking owner in "get events" #31 ([`9390778`](https://github.com/raider444/psytican-bot/commit/9390778839820f6e5bfda21ee41ad2510cd8b5c7))
+
+* feat(tg_wrapper): Implemented silent replies to avoid notification spam #30 ([`3d04231`](https://github.com/raider444/psytican-bot/commit/3d042319f53e2d5211f495454d1132c82297e8a1))
+
+* feat(persistense): Implement bot persistence #3 ([`1a2982e`](https://github.com/raider444/psytican-bot/commit/1a2982e10f5a02507cdafc13c62e9f948c37d7a3))
+
+### Fixes
+
+* fix(#27): Fixed stcuks and wrong menu drops on conversations ([`eaa78ba`](https://github.com/raider444/psytican-bot/commit/eaa78bac95b8a2434053a62b7b7f68600cac8146))
+
+* fix(converstions): Fix "cancel" stuck #27 ([`f2f29c6`](https://github.com/raider444/psytican-bot/commit/f2f29c693db285d58cff859aefe635343409a4b8))
+
+* fix(converstions): Fix stcuks and wrong menu drops on conversations #27 ([`b9c33d1`](https://github.com/raider444/psytican-bot/commit/b9c33d194d8b2c57e7ab39075c8f651c7b760650))
+
+* fix(gcalendar): Implement credentials memory cache ([`2d04b3e`](https://github.com/raider444/psytican-bot/commit/2d04b3e710b6d9cdffdadcf462b009b5bd0201f9))
+
+### Unknown
+
+* Merge pull request #38 from raider444/develop
+
+feat(bot): Multiple features and fixes ([`be0b5b4`](https://github.com/raider444/psytican-bot/commit/be0b5b41b103035af1e15db7cf44666caf705931))
+
+* Merge pull request #36 from raider444:feature/event-owner-information
+
+feat(event_list): Add information about booking owner in "get events" #31 ([`c5d5901`](https://github.com/raider444/psytican-bot/commit/c5d590124623137ffc58b831489a011aa25aa474))
+
+* Merge pull request #35 from raider444:silent-notifications
+
+feat(tg_wrapper): Implemented silent replies to avoid notification spam #30 ([`435cea1`](https://github.com/raider444/psytican-bot/commit/435cea1a4c6d3af279ad71da23e4f1eaef44584f))
+
+* Merge pull request #29 from raider444/fix-converstation-stuck
+
+fix(conversations): Fix stcuks and wrong menu drops on conversations #27 ([`e5d9a3d`](https://github.com/raider444/psytican-bot/commit/e5d9a3d0413981bb6d3c25f28387b1f2b2887634))
+
+* Merge branch 'develop' into fix-converstation-stuck ([`f358aea`](https://github.com/raider444/psytican-bot/commit/f358aea339974514b8565c3b71efaee0fb65ba4d))
+
+* Merge pull request #28 from raider444/feat-presistence
+
+feat(persistense): Implement persistense ([`25b2b36`](https://github.com/raider444/psytican-bot/commit/25b2b3603109460c306f1363440dbba481d97560))
+
+
 ## v0.2.7 (2024-10-16)
 
 ### Fixes
