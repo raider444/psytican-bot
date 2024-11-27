@@ -104,6 +104,11 @@ tg_app.add_handler(
 
 async def run_bot() -> None:
     logger.info("Starting bot...")
+    logger.info(f"Notifications disabled: {settings.DISABLE_NOTIFICATION}")
+    if settings.PERSISTENCE and settings.PERSISTENCE.TYPE:
+        logger.info(f"Persistence: {settings.PERSISTENCE.TYPE.name}")
+    else:
+        logger.info("Persistence: disabled")
 
     from src.metrics.bot_info_metrics import tg_app_info  # noqa
 

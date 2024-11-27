@@ -17,4 +17,11 @@ data:
   VAULT_URL: {{ .Values.config.vault.url | quote }}
   VAULT_SECRET_PATH: {{ .Values.config.vault.secretPath | quote }}
   VAULT_KUBERNETES_ROLE: {{ .Values.config.vault.kubernetesRole | quote }}
+  DISABLE_NOTIFICATION: {{ .Values.config.disableNotifications | quote }}
+  {{- if .Values.config.persistence.type }}
+  PERSISTENCE__TYPE: {{ .Values.config.persistence.type | quote }}
+  {{- end }}
+  {{- if eq .Values.config.persistence.type "file "}}
+  PERSISTENCE__FILE: {{ .Values.config.persistence.file | default "/opt/psytican/psytican-bot/data/pickle.bin" }}
+  {{- end }}
   {{- end -}}

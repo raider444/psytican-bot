@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "psytican-bot.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if and (not .Values.autoscaling.enabled) .Values.config.persistence.type }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
