@@ -2,15 +2,17 @@ import pytest
 from datetime import date as _date
 from src.utils.convert import DateParser
 
+current_year = _date.today().year
+
 
 @pytest.mark.parametrize(
     "date,result",
     [
-        ("30.11", _date(2024, 11, 30)),
-        ("3.01", _date(2024, 1, 3)),
+        ("30.11", _date(current_year, 11, 30)),
+        ("3.01", _date(current_year, 1, 3)),
         ("30.11.2023", _date(2023, 11, 30)),
         ("1.3.24", _date(2024, 3, 1)),
-        ("30/11", _date(2024, 11, 30)),
+        ("30/11", _date(current_year, 11, 30)),
         ("30/11/2023", _date(2023, 11, 30)),
         ("1/3/24", _date(2024, 3, 1)),
     ],
