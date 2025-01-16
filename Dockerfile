@@ -1,11 +1,11 @@
-FROM python:3.12 AS base
+FROM python:3.13 AS base
 
 LABEL org.opencontainers.image.authors="Igor I Shatunov"
 LABEL org.opencontainers.image.source=https://github.com/raider444/psytican-bot
 LABEL org.opencontainers.image.description="Psytican chat helper bot image"
 LABEL org.opencontainers.image.licenses=MIT
 
-ARG POETRY_VERSION=1.4.2 \
+ARG POETRY_VERSION=2.0.1 \
     POETRY_HOME=/usr/local
 
 RUN mkdir -p /opt/psytican/psytican-bot \
@@ -29,7 +29,7 @@ COPY pyproject.toml poetry.lock* setup.cfg ./
 RUN poetry install --no-ansi --no-root --without=dev
 
 
-FROM python:3.12-alpine AS production
+FROM python:3.13-alpine AS production
 
 ARG BOT_VERSION
 
