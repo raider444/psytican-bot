@@ -25,6 +25,8 @@ logging.getLogger("apscheduler.scheduler").setLevel(logging.INFO)
 logging.getLogger("oauth2client").setLevel(logging.INFO)
 logging.getLogger("pydantic-vault").setLevel(logging.DEBUG)
 logging.getLogger("uvicorn.access").addFilter(EndpointFilter(endpoint="/healthz"))
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter(endpoint="/mterics"))
+logging.getLogger("uvicorn.access").addFilter(EndpointFilter(endpoint="/mterics/"))
 
 # logger = logging.getLogger(__name__)
 logger = logging.getLogger(name="bookBot")
