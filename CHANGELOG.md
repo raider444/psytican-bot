@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.3.4 (2025-06-19)
+
+### Bug Fixes
+
+- **logging**: Fix typo
+  ([`3515379`](https://github.com/raider444/psytican-bot/commit/3515379b3816f2dee1c2c52dd8ab49a41d63cab0))
+
+
 ## v0.3.3 (2025-06-19)
 
 ### Bug Fixes
