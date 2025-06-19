@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.3.3 (2025-06-19)
+
+### Bug Fixes
+
+- **logging**: Exclude metrics endpoint from logs
+  ([`41b9096`](https://github.com/raider444/psytican-bot/commit/41b90964d4008942a7182b48a94bc8319a2f762a))
+
+
 ## v0.3.2 (2025-06-19)
 
 ### Bug Fixes
