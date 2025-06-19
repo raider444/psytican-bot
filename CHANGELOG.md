@@ -1,6 +1,54 @@
 # CHANGELOG
 
 
+## v0.3.2 (2025-06-19)
+
+### Bug Fixes
+
+- **deps**: Update dependencies
+  ([`9f898ae`](https://github.com/raider444/psytican-bot/commit/9f898ae0f439b68ee2e4282b9545ec239637dfd6))
+
+### Chores
+
+- **deps**: Bump requests in the pip group across 1 directory
+  ([`8c48c33`](https://github.com/raider444/psytican-bot/commit/8c48c3320bf115e0cfd37d41ab37f52fcbe5a2c9))
+
+Bumps the pip group with 1 update in the / directory: [requests](https://github.com/psf/requests).
+
+Updates `requests` from 2.32.3 to 2.32.4 - [Release notes](https://github.com/psf/requests/releases)
+  - [Changelog](https://github.com/psf/requests/blob/main/HISTORY.md) -
+  [Commits](https://github.com/psf/requests/compare/v2.32.3...v2.32.4)
+
+--- updated-dependencies: - dependency-name: requests dependency-version: 2.32.4
+
+dependency-type: indirect
+
+dependency-group: pip
+
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+- **deps**: Bump urllib3 in the pip group across 1 directory
+  ([`e86592e`](https://github.com/raider444/psytican-bot/commit/e86592e3dc2f1ad127b0ef281739141e4a0ad84d))
+
+Bumps the pip group with 1 update in the / directory: [urllib3](https://github.com/urllib3/urllib3).
+
+Updates `urllib3` from 2.3.0 to 2.5.0 - [Release notes](https://github.com/urllib3/urllib3/releases)
+  - [Changelog](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst) -
+  [Commits](https://github.com/urllib3/urllib3/compare/2.3.0...2.5.0)
+
+--- updated-dependencies: - dependency-name: urllib3 dependency-version: 2.5.0
+
+dependency-type: indirect
+
+dependency-group: pip
+
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+
 ## v0.3.1 (2025-01-16)
 
 ### Bug Fixes
