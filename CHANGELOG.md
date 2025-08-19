@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v0.3.5 (2025-08-19)
+
+### Bug Fixes
+
+- **deps**: Update dependencies
+  ([`242916b`](https://github.com/raider444/psytican-bot/commit/242916b18c73a14b2c838931b24b2fe83648e252))
+
+### Chores
+
+- **cicd**: Merge pull request #45 from raider444/alert-autofix-1
+  ([`1a6c43d`](https://github.com/raider444/psytican-bot/commit/1a6c43d2427809166eafaef4adc7d149c9f78f71))
+
+Potential fix for code scanning alert no. 1: Workflow does not contain permissions
+
+- **cicd**: Potential fix for code scanning alert no. 1: Workflow does not contain permissions
+  ([`8376174`](https://github.com/raider444/psytican-bot/commit/8376174b28a53941a5952b77e5012ab10a36af84))
+
+Co-authored-by: Copilot Autofix powered by AI
+  <62310815+github-advanced-security[bot]@users.noreply.github.com>
+
+
 ## v0.3.4 (2025-06-19)
 
 ### Bug Fixes
