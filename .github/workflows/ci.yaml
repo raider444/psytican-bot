@@ -120,7 +120,7 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
 
       - name: Publish | Upload package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.10.3
+        uses: pypa/gh-action-pypi-publish@v1.13.0
         if: steps.release.outputs.released == 'true' && steps.release.outputs.is_prerelease == 'false'
 
       - name: Publish Helm chart
