@@ -60,7 +60,7 @@ config:
   converstationTimeout: 300
   calendarId: "your-google-calendar-id@group.calendar.google.com"
   disableNotifications: true
-  redisDSN: redis://psytican-bot-redis.svc:6379/0
+  redisDSN: redis://psytican-bot-redis-master.svc:6379/0
   persistence:
     type: redis
 
