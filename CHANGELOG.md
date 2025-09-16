@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.3.7 (2025-09-16)
+
+### Bug Fixes
+
+- **chart**: Fix helm chart
+  ([`b4c187b`](https://github.com/raider444/psytican-bot/commit/b4c187bae6d7de092831cb8e77b3850af58e8b7d))
+
+
 ## v0.3.6 (2025-09-16)
 
 ### Chores
