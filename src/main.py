@@ -27,9 +27,7 @@ async def lifespan(_: FastAPI):
             secret_token=settings.WEBHOOK_SECRET.get_secret_value(),
         )  # replace <your-webhook-url>
         async with tg_app:
-            await tg_app.start()
             yield
-            await tg_app.stop()
     else:
         logger.info("Running in polling mode")
         await tg_app.bot.deleteWebhook()
@@ -54,7 +52,9 @@ async def process_update(request: Request):
     req = await request.json()
     logger.debug(f"{req=}")
     update = Update.de_json(req, tg_app.bot)
+    await tg_app.initialize()
     await tg_app.process_update(update)
+    await tg_app.shutdown()
     return Response(status_code=HTTPStatus.OK)
 
 

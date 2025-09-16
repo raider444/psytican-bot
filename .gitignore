@@ -1,6 +1,7 @@
 .venv
 .vscode
 .env
+.env_*
 .pytest_cache
 .mypy_cache
 .coverage
