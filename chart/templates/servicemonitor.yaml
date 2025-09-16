@@ -1,0 +1,17 @@
+{{- if .Values.serviceMonitor.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    {{- include "psytican-bot.labels" . | nindent 4 }}
+  name: {{ include "psytican-bot.fullname" . }}
+  namespace: psytican-prod
+spec:
+  endpoints:
+  - interval: {{ .Values.serviceMonitor.interval }}
+    path: /metrics/
+    port: http
+  selector:
+    matchLabels:
+      {{- include "psytican-bot.selectorLabels" . | nindent 6 }}
+{{- end -}}

@@ -88,34 +88,22 @@ class RedisPersistence(BasePersistence):
 
     async def get_user_data(self) -> DefaultDict[int, Dict[Any, Any]]:
         """Returns the user_data from the pickle on Redis if it exists or an empty :obj:`defaultdict`."""
-        if self.user_data:
-            pass
-        else:
-            await self.load_redis()
+        await self.load_redis()
         return deepcopy(self.user_data)  # type: ignore[arg-type]
 
     async def get_chat_data(self) -> DefaultDict[int, Dict[Any, Any]]:
         """Returns the chat_data from the pickle on Redis if it exists or an empty :obj:`defaultdict`."""
-        if self.chat_data:
-            pass
-        else:
-            await self.load_redis()
+        await self.load_redis()
         return deepcopy(self.chat_data)  # type: ignore[arg-type]
 
     async def get_bot_data(self) -> Dict[Any, Any]:
         """Returns the bot_data from the pickle on Redis if it exists or an empty :obj:`dict`."""
-        if self.bot_data:
-            pass
-        else:
-            await self.load_redis()
+        await self.load_redis()
         return deepcopy(self.bot_data)  # type: ignore[arg-type]
 
     async def get_conversations(self, name: str) -> ConversationDict:
         """Returns the conversations from the pickle on Redis if it exsists or an empty dict."""
-        if self.conversations:
-            pass
-        else:
-            await self.load_redis()
+        await self.load_redis()
         return self.conversations.get(name, {}).copy()  # type: ignore[union-attr]
 
     async def update_conversation(
@@ -195,10 +183,7 @@ class RedisPersistence(BasePersistence):
             Dict[:obj:`str`, :obj:`str`]] | :obj:`None`: The restored metadata or :obj:`None`,
             if no data was stored.
         """
-        if self.callback_data:
-            pass
-        else:
-            await self.load_redis()
+        await self.load_redis()
         if self.callback_data is None:
             return None
         return deepcopy(self.callback_data)
