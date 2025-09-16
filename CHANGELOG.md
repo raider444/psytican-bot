@@ -1,12 +1,40 @@
 # CHANGELOG
 
 
+## v0.3.6 (2025-09-16)
+
+### Chores
+
+- **deps**: Bump pypa/gh-action-pypi-publish
+  ([`bdd6eb7`](https://github.com/raider444/psytican-bot/commit/bdd6eb786d58ee413ae7fbc9d573aa1fe3c3777b))
+
+Bumps the github_actions group with 1 update in the /.github/workflows directory:
+  [pypa/gh-action-pypi-publish](https://github.com/pypa/gh-action-pypi-publish).
+
+Updates `pypa/gh-action-pypi-publish` from 1.10.3 to 1.13.0 - [Release
+  notes](https://github.com/pypa/gh-action-pypi-publish/releases) -
+  [Commits](https://github.com/pypa/gh-action-pypi-publish/compare/v1.10.3...v1.13.0)
+
+--- updated-dependencies: - dependency-name: pypa/gh-action-pypi-publish dependency-version: 1.13.0
+
+dependency-type: direct:production
+
+dependency-group: github_actions
+
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+
 ## v0.3.5 (2025-08-19)
 
 ### Bug Fixes
 
 - **deps**: Update dependencies
   ([`242916b`](https://github.com/raider444/psytican-bot/commit/242916b18c73a14b2c838931b24b2fe83648e252))
+
+- **persistence**: #3 Make ability to run bot in replicated (HA) mode
+  ([`523e015`](https://github.com/raider444/psytican-bot/commit/523e01532b87776f647f57ed953a3c6707c27067))
 
 ### Chores
 
