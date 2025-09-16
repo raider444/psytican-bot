@@ -5,7 +5,6 @@ metadata:
   labels:
     {{- include "psytican-bot.labels" . | nindent 4 }}
   name: {{ include "psytican-bot.fullname" . }}
-  namespace: psytican-prod
 spec:
   endpoints:
   - interval: {{ .Values.serviceMonitor.interval }}
