@@ -1,6 +1,59 @@
 # CHANGELOG
 
 
+## v0.3.8 (2026-01-06)
+
+### Bug Fixes
+
+- **security**: Update vulurable packages
+  ([`3d9deb1`](https://github.com/raider444/psytican-bot/commit/3d9deb195d0c95787766284d85d0c01ac6f8f26e))
+
+### Chores
+
+- **deps**: Bump urllib3 in the pip group across 1 directory
+  ([`4917063`](https://github.com/raider444/psytican-bot/commit/491706381ea5e625dc7a5bd12ac9a759c797bed0))
+
+Bumps the pip group with 1 update in the / directory: [urllib3](https://github.com/urllib3/urllib3).
+
+Updates `urllib3` from 2.5.0 to 2.6.0 - [Release notes](https://github.com/urllib3/urllib3/releases)
+  - [Changelog](https://github.com/urllib3/urllib3/blob/main/CHANGES.rst) -
+  [Commits](https://github.com/urllib3/urllib3/compare/2.5.0...2.6.0)
+
+--- updated-dependencies: - dependency-name: urllib3 dependency-version: 2.6.0
+
+dependency-type: indirect
+
+dependency-group: pip
+
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+- **deps-dev**: Bump filelock in the pip group across 1 directory
+  ([`69c547b`](https://github.com/raider444/psytican-bot/commit/69c547b41efac646590a059179d6eca200abb725))
+
+Bumps the pip group with 1 update in the / directory:
+  [filelock](https://github.com/tox-dev/py-filelock).
+
+Updates `filelock` from 3.19.1 to 3.20.1 - [Release
+  notes](https://github.com/tox-dev/py-filelock/releases) -
+  [Changelog](https://github.com/tox-dev/filelock/blob/main/docs/changelog.rst) -
+  [Commits](https://github.com/tox-dev/py-filelock/compare/3.19.1...3.20.1)
+
+--- updated-dependencies: - dependency-name: filelock dependency-version: 3.20.1
+
+dependency-type: indirect
+
+dependency-group: pip
+
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+- **halm**: Update default redis url
+  ([`170ebc0`](https://github.com/raider444/psytican-bot/commit/170ebc0888042c6a3731164710e53514ca273902))
+
+
 ## v0.3.7 (2025-09-16)
 
 ### Bug Fixes
